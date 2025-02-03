@@ -1,0 +1,8 @@
+fix "cls/clear" calls with a nicer printing system. (Possibly redrawing characters instead of clearing screen)
+
+rclone:
+    - should have queueable jobs
+    - should have report progress and complete/fail callbacks
+
+VRPManager:
+    - move findFirstFileWithExtension to some utility
