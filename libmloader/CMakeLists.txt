@@ -13,6 +13,7 @@ add_library(mloader SHARED  src/AppContext.cpp
                             src/VRPManager.cpp
                             src/RClone.cpp
                             src/7z.cpp
+			    src/ADB.cpp
                             src/curl_global.cpp
 
 )

@@ -20,7 +20,6 @@ namespace mloader
 
 	bool Zip::CheckAndDownloadTool()
 	{
-
 		const fs::path zipToolDir = m_cacheDir / "7z/";
 
 	#ifdef _WIN32
@@ -31,8 +30,16 @@ namespace mloader
 		const std::string httpFile{"https://www.7-zip.org/a/7z2409-linux-x64.tar.xz"};
 		
 		const fs::path zipToolPath = zipToolDir / "7z";
-		const fs::path zipToolPathZip = m_cacheDir / "rclone-v1.69.0-linux-amd64.zip";
+		const fs::path zipToolPathZip = m_cacheDir / "7z2409-linux-x64.tar.xz";
 	#endif
+
+		if (!fs::exists(zipToolDir))
+		{
+			if (!fs::create_directories(zipToolDir))
+			{
+				throw std::runtime_error("Unable to create directory: " + zipToolDir.string());
+			}
+		}
 
 		if (!fs::exists(zipToolPath))
 		{
@@ -45,22 +52,23 @@ namespace mloader
 				}
 			}
 
-			// extract
-			// TODO: format this string
+			// unzip
 			FILE* fp;
-			// fp = popen("7z x -o/tmp/mloader/cache/ /tmp/mloader/cache/rclone-v1.69.0-linux-amd64.zip", "r");
-			fp = popen("unzip /tmp/mloader/cache/rclone-v1.69.0-linux-amd64.zip -d /tmp/mloader/cache/", "r");
+			char strbuffer[512];
+			snprintf(strbuffer, sizeof(strbuffer), "tar -xvJf %s -C %s 7zz", zipToolPathZip.c_str(), zipToolDir.c_str());
+			const std::string dbgStr = strbuffer;
+			fp = popen(strbuffer, "r");
 			if (fp == NULL)
 			{
 				perror("popen");
 				return false;
 			}
 			
-			/*char path[1035];
+			char path[1035];
 			// Read the output a line at a time - output it.
 			while (fgets(path, sizeof(path), fp) != NULL) {
-				printf("%s", path);
-			}*/
+				// printf("%s", path);
+			}
 
 			int status = pclose(fp);
 			if (status == -1) {
@@ -69,6 +77,46 @@ namespace mloader
 			} else {
 				printf("Command exited with status: %d\n", WEXITSTATUS(status));
 			}
+		}
+
+		return true;
+	}
+
+	bool Zip::Unzip7z(const fs::path& archiveFile, const fs::path& destinationDir, const std::string& password) const
+	{
+		if (!fs::exists(archiveFile))
+		{
+			return false;
+		}
+
+		const fs::path& zipExecutable = m_cacheDir / "7z/7zz";
+
+		// unzip
+		FILE* fp;
+		char strbuffer[512];
+		snprintf(strbuffer, sizeof(strbuffer), "%s x -aoa -bsp1 -bso0 -o%s -p%s %s", zipExecutable.c_str(), destinationDir.c_str(), password.c_str(), archiveFile.c_str());
+		const std::string dbgStr = strbuffer;
+		fp = popen(strbuffer, "r");
+		if (fp == NULL)
+		{
+			perror("popen");
+			return false;
+		}
+		
+		char path[1035];
+		// Read the output a line at a time - output it.
+		while (fgets(path, sizeof(path), fp) != NULL) {
+			// printf("%s", path);
+			// TODO: report this through a callback
+		}
+
+		int status = pclose(fp);
+		if (status == -1) {
+			perror("pclose");
+			return false;	// TODO: report this through a callback
+		} else {
+			printf("Command exited with status: %d\n", WEXITSTATUS(status));
+			// TODO: report this through a callback
 		}
 
 		return true;

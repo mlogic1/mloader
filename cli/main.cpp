@@ -1,9 +1,12 @@
+#include "MainMenu.h"
+#include "GameListMenu.h"
 #include <mloader/AppContext.h>
 #include <termios.h>
 #include <unistd.h>
 #include <iostream>
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 #ifdef _WIN32
 	#define OS_CLEAR "cls"
@@ -14,51 +17,98 @@
 #define KEY_Q 'q'
 #define KEY_ARROW_UP 65
 #define KEY_ARROW_DOWN 66
+#define KEY_PGUP 53
+#define KEY_PGDN 54
+#define KEY_BKSP 127
 #define KEY_RETURN 10
 #define MLOADER_VERSION 0.1
 
 void set_terminal_mode() {
-    struct termios newt;
-    tcgetattr(STDIN_FILENO, &newt);
-    newt.c_lflag &= ~(ICANON | ECHO); // Disable canonical mode and echo
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+	struct termios newt;
+	tcgetattr(STDIN_FILENO, &newt);
+	newt.c_lflag &= ~(ICANON | ECHO); // Disable canonical mode and echo
+	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 	std::cout << "\033[?25l" << std::endl;
 }
 
 void reset_terminal_mode() {
-    struct termios newt;
-    tcgetattr(STDIN_FILENO, &newt);
-    newt.c_lflag |= (ICANON | ECHO); // Enable canonical mode and echo
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+	struct termios newt;
+	tcgetattr(STDIN_FILENO, &newt);
+	newt.c_lflag |= (ICANON | ECHO); // Enable canonical mode and echo
+	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 	std::cout << "\033[?25h" << std::endl;
 }
 
-
-static std::vector<std::string> menuoptions = {
-	"thing 1",
-	"thing 2",
-	"thing 3",
-	"Quit"
-};
-
 static int32_t selectedIndex = 0;
+std::unordered_map<std::string, Menu*> allMenus;
 
 void ClearScreen()
 {
 	system(OS_CLEAR);
 }
 
-void PrintMenu()
+void PrintPage(const StringList& options, int page, int pageSize)
 {
-	for(int i = 0; i < menuoptions.size(); ++i)
+	int start = page * pageSize;
+	int end = std::min(start + pageSize, static_cast<int>(options.size()));
+
+	for (int i = start; i < end; ++i) {
+		if (i == selectedIndex)
+		{
+			std::cout << "> ";
+		}
+		std::cout << options[i] << std::endl;
+	}
+}
+
+// used for game list menu
+void PagedPrintMenu(Menu* menu)
+{
+	const auto& options = menu->GetOptions();
+	constexpr int pageSize = 20;
+	const int numPages = (options.size() + pageSize - 1) / pageSize;
+
+	int currentPage = selectedIndex / pageSize;
+	PrintPage(options, currentPage, pageSize);
+	std::cout << std::endl << std::endl << std::endl;
+	std::cout << "Page " << currentPage + 1 << " of " << numPages << std::endl << std::endl;
+	std::cout << "Press the arrow keys to navigate the list." << std::endl;
+	std::cout << "Press PGDN or PGUP to navigate to next or previous page." << std::endl;
+	std::cout << "Press Backspace to return to previous menu." << std::endl;
+}
+
+void PrintMenu(Menu* menu)
+{
+	const auto& options = menu->GetOptions();
+	
+	for (int i = 0; i < options.size(); ++i)
 	{
 		if (i == selectedIndex)
 		{
 			std::cout << "> ";
 		}
 
-		std::cout << menuoptions.at(i) << std::endl;
+		std::cout << options[i] << std::endl;
 	}
+}
+
+static Menu* currentMenu = nullptr;
+
+void ChangeMenu(const std::string& menuName)
+{
+	currentMenu = allMenus.at(menuName);
+	selectedIndex = 0;
+}
+
+std::unordered_map<std::string, Menu*> SetupMenus(AppContext* context)
+{
+	std::unordered_map<std::string, Menu*> result =
+	{
+		{ "MainMenu", new MainMenu(context) },
+		{ "GameListMenu", new GameListMenu(context) }
+	};
+	
+	return result;
 }
 
 int main(int argc, char* argv[])
@@ -66,17 +116,18 @@ int main(int argc, char* argv[])
 	set_terminal_mode();
 	std::cout << "mloader" << std::endl;
 	
-	mloader::AppContext* context = mloader::CreateLoaderContext();
+	AppContext* context = CreateLoaderContext();
+	allMenus = SetupMenus(context);
+	ChangeMenu("MainMenu");
 
 	ClearScreen();
-	PrintMenu();
+	PrintMenu(currentMenu);
 	
 	int c;
 	while(c != 'q')
 	{
 		c = getchar();
-
-		// std::cout << (int)c << std::endl;
+		const size_t numOptions = currentMenu->GetOptions().size();
 		
 		if (c == 27)
 		{
@@ -88,37 +139,86 @@ int main(int argc, char* argv[])
 			if (c == KEY_ARROW_UP)
 			{
 				--selectedIndex;
-				if (selectedIndex < 0)
-				{
-					selectedIndex = 0;
-				}
 			}
 			if (c == KEY_ARROW_DOWN)
 			{
 				++selectedIndex;
-				if (selectedIndex > menuoptions.size() - 1)
-				{
-					selectedIndex = menuoptions.size() - 1;
-				}
+			}
+			if (c == KEY_PGUP)
+			{
+				selectedIndex -=20;
+			}
+			if (c == KEY_PGDN)
+			{
+				selectedIndex +=20;
+			}
+
+			if (selectedIndex < 0)
+			{
+				selectedIndex = 0;
+			}
+
+			if (selectedIndex > numOptions - 1)
+			{
+				selectedIndex = numOptions - 1;
 			}
 		}
 		else if (c == KEY_RETURN)
 		{
 			// execute action
-			mloader::RefreshMetadata(context);
+			ExecuteActionResult executeActionResult = currentMenu->ExecuteAction((uint32_t)selectedIndex);
+
+			if (executeActionResult.Result == ActionResult::ExitApplication)
+			{
+				break;
+			}
+
+			if (executeActionResult.Result == ActionResult::Fail)
+			{
+				std::cout << std::get<std::string>(executeActionResult.Parameter) << std::endl;
+			}
+			
+			if (executeActionResult.Result == ActionResult::ChangeMenu)
+			{
+				ChangeMenu(std::get<std::string>(executeActionResult.Parameter));
+			}
+
+			// mloader::RefreshMetadata(context);
+		}
+		else if (c == KEY_BKSP)
+		{
+			ExecuteActionResult executeActionResult = currentMenu->ExecuteCancelAction();
+
+			if (executeActionResult.Result == ActionResult::ChangeMenu)
+			{
+				ChangeMenu(std::get<std::string>(executeActionResult.Parameter));
+			}
 		}
 		else
 		{
-			// std::cout << c << std::endl;
-			continue;
 		}
 		
 		ClearScreen();
-		PrintMenu();
+
+		if (dynamic_cast<GameListMenu*>(currentMenu))
+		{
+			PagedPrintMenu(currentMenu);
+		}
+		else
+		{
+			PrintMenu(currentMenu);
+		}
 	}
 
+	// Cleanup
 	reset_terminal_mode();
 
-	mloader::DestroyLoaderContext(context);
+	for (auto menu : allMenus)
+	{
+		delete menu.second;
+		menu.second = nullptr;
+	}
+
+	DestroyLoaderContext(context);
 	return 0;
 }

@@ -15,6 +15,7 @@ namespace mloader
 			~RClone();
 
 			bool SyncFile(const std::string& baseUrl, const std::string& fileName, const fs::path& directory) const;
+			bool CopyFile(const std::string& baseUrl, const std::string& fileId, const fs::path& directory) const;
 		
 		private:
 			bool CheckAndDownloadTool();

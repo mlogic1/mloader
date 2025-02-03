@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <exception>
 #include <iostream>
+#include <regex>
 #include <fstream>
 
 namespace mloader
@@ -42,21 +43,22 @@ namespace mloader
 			}
 
 			// extract
-			// TODO: format this string
 			FILE* fp;
-			// fp = popen("7z x -o/tmp/mloader/cache/ /tmp/mloader/cache/rclone-v1.69.0-linux-amd64.zip", "r");
-			fp = popen("unzip /tmp/mloader/cache/rclone-v1.69.0-linux-amd64.zip -d /tmp/mloader/cache/", "r");
+			char strbuffer[1024];
+			snprintf(strbuffer, sizeof(strbuffer), "unzip %s -d %s", rcloneToolPathZip.c_str(), m_cacheDir.c_str());
+			const std::string dbgStr = strbuffer;
+			fp = popen(strbuffer, "r");
 			if (fp == NULL)
 			{
 				perror("popen");
 				return false;
 			}
 			
-			/*char path[1035];
-			// Read the output a line at a time - output it.
+			char path[1035];
+			// Read the output a line at a time - although don't output it.
 			while (fgets(path, sizeof(path), fp) != NULL) {
-				printf("%s", path);
-			}*/
+				// printf("%s", path);
+			}
 
 			int status = pclose(fp);
 			if (status == -1) {
@@ -95,11 +97,11 @@ namespace mloader
 				return false;
 			}
 			
-			/*char path[1035];
+			char path[1035];
 			// Read the output a line at a time - output it.
 			while (fgets(path, sizeof(path), fp) != NULL) {
-				printf("%s", path);
-			}*/
+				// printf("%s", path);
+			}
 
 			int status = pclose(fp);
 			if (status == -1) {
@@ -111,7 +113,63 @@ namespace mloader
 				printf("Command exited with status: %d\n", WEXITSTATUS(status));
 			}
 
+		return true;
+	}
+	
+	bool RClone::CopyFile(const std::string& baseUrl, const std::string& fileId, const fs::path& directory) const
+	{
+		#ifdef _WIN32
+			const std::string httpFile{"https://downloads.rclone.org/v1.69.0/rclone-v1.69.0-windows-amd64.zip"};
+		#else
+			const std::string httpFile{"https://downloads.rclone.org/v1.69.0/rclone-v1.69.0-linux-amd64.zip"};
 
+			const fs::path rcloneToolDir = m_cacheDir / "rclone-v1.69.0-linux-amd64/";
+			const fs::path rcloneToolPath = rcloneToolDir / "rclone";
+		#endif
+
+		FILE* fp;
+		char strbuffer[1024];
+
+		const fs::path directoryWithSubdir = m_cacheDir / fileId;
+
+		// prompt override here?
+
+		snprintf(strbuffer, sizeof(strbuffer), "%s --http-url %s --tpslimit 1.0 --tpslimit-burst 3 copy \":http:/%s\" \"%s\" --transfers 1 --multi-thread-streams 0 --progress", rcloneToolPath.c_str(), baseUrl.c_str(), fileId.c_str(), directoryWithSubdir.c_str());
+		const std::string dbgStr{strbuffer};
+		fp = popen(strbuffer, "r");
+		if (fp == NULL)
+		{
+			perror("popen");
+			return false;
+		}
+		
+		char path[2048];
+		system("clear");
+
+		std::regex percentage_regex(R"((\d+)%(?=, ))"); // detect progress
+		std::smatch match;
+
+		// Read the output a line at a time - output it.
+		while (fgets(path, sizeof(path), fp) != NULL) {
+			std::string line(path);
+
+			if (std::regex_search(line, match, percentage_regex))
+			{
+				std::cout << match[1] << "%" << std::endl;
+				// TODO: report this through a callback
+			}
+		}
+
+		int status = pclose(fp);
+		if (status == -1) {
+			perror("pclose");
+			return false;
+		} 
+		else
+		{
+			printf("Command exited with status: %d\n", WEXITSTATUS(status));
+			// TODO: report this through a callback
+		}
 		return true;
 	}
 }

@@ -5,6 +5,9 @@ project(cli)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_executable(mloader-cli main.cpp)
+add_executable(mloader-cli 	main.cpp
+							Menu.cpp
+							MainMenu.cpp
+							GameListMenu.cpp)
 
 target_link_libraries(mloader-cli PRIVATE mloader)

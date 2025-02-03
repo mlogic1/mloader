@@ -14,6 +14,8 @@ namespace mloader
 			Zip(const std::string& cacheDir);
 			~Zip();
 
+			bool Unzip7z(const fs::path& archiveFile, const fs::path& destinationDir, const std::string& password = "") const;
+
 		private:
 			bool CheckAndDownloadTool();
 
