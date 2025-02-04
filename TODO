@@ -1,8 +1,14 @@
 fix "cls/clear" calls with a nicer printing system. (Possibly redrawing characters instead of clearing screen)
 
+general:
+    - move /cli.cpp/h files to /cli/src
+    - by default, do not build the cli tool. Set it behind a cmake variable
+    - only build the gtk tool on linux
+
 rclone:
     - should have queueable jobs
     - should have report progress and complete/fail callbacks
 
 VRPManager:
+    - load json to struct
     - move findFirstFileWithExtension to some utility

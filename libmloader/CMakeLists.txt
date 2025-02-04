@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(CURL REQUIRED)
 
-# Add the executable
+# Add the library
 add_library(mloader SHARED  src/AppContext.cpp
                             src/VRPManager.cpp
                             src/RClone.cpp
@@ -21,4 +21,4 @@ add_library(mloader SHARED  src/AppContext.cpp
 set(LIBMLOADER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_include_directories(mloader PUBLIC ${LIBMLOADER_INCLUDE_DIR})
-target_link_libraries(mloader CURL::libcurl)
+target_link_libraries(mloader PUBLIC CURL::libcurl)

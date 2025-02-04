@@ -2,10 +2,15 @@
 #define APP_CONTEXT_H
 
 #include "App.h"
+#include <stddef.h>
 
 typedef struct AppContext AppContext;
 
-AppContext* CreateLoaderContext(const char* customCacheDir = "", const char* customDownloadDir = "");
+typedef void (* CreateLoaderContextStatusCallback)(const char*);
+typedef void (* CreateLoaderContextAsyncCompletedCallback)(AppContext*);
+
+AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback = 0, const char* customCacheDir = "", const char* customDownloadDir = "");
+void CreateLoaderContextAsync(CreateLoaderContextAsyncCompletedCallback completedCallback, CreateLoaderContextStatusCallback callback = NULL, const char* customCacheDir = "", const char* customDownloadDir = "");
 void DestroyLoaderContext(AppContext* handle);
 
 

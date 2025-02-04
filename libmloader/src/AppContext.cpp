@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <filesystem>
 #include <string>
+#include <thread>
+#include <future>
 
 namespace fs = std::filesystem;
 
@@ -48,8 +50,18 @@ static const char* GetErrorMessage()
 	return err_msg;
 }
 
-AppContext* CreateLoaderContext(const char* customCacheDir, const char* customDownloadDir)
+static inline void GenericCallback(CreateLoaderContextStatusCallback callback, const char* message)
 {
+	if (callback != NULL)
+	{
+		callback(message);
+	}
+}
+
+AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, const char* customCacheDir, const char* customDownloadDir)
+{
+	GenericCallback(callback, "Initializing");
+	
 	mloader::InitGlobalCurl();
 	fs::path cacheDir = DetermineCacheDir();
 	fs::path downloadDir = DetermineDownloadDir();
@@ -86,6 +98,7 @@ AppContext* CreateLoaderContext(const char* customCacheDir, const char* customDo
 
 	try
 	{
+		GenericCallback(callback, "Initializing RClone");
 		appContext->Rclone = new mloader::RClone(cacheDir);
 	}
 	catch(std::runtime_error& error)
@@ -97,6 +110,7 @@ AppContext* CreateLoaderContext(const char* customCacheDir, const char* customDo
 
 	try
 	{
+		GenericCallback(callback, "Initializing 7-Zip");
 		appContext->zip7 = new mloader::Zip(cacheDir);
 	}
 	catch(std::runtime_error& error)
@@ -109,6 +123,7 @@ AppContext* CreateLoaderContext(const char* customCacheDir, const char* customDo
 
 	try
 	{
+		GenericCallback(callback, "Initializing ADB");
 		appContext->Adb = new mloader::ADB(cacheDir);
 	}
 	catch(std::runtime_error& error)
@@ -122,6 +137,7 @@ AppContext* CreateLoaderContext(const char* customCacheDir, const char* customDo
 
 	try
 	{
+		GenericCallback(callback, "Initializing VRP");
 		appContext->VrpManager = new mloader::VRPManager(*appContext->Rclone, *appContext->zip7, cacheDir, downloadDir);
 	}
 	catch(std::runtime_error& error)
@@ -135,6 +151,16 @@ AppContext* CreateLoaderContext(const char* customCacheDir, const char* customDo
 	}
 
 	return appContext;
+}
+
+void CreateLoaderContextAsync(CreateLoaderContextAsyncCompletedCallback completedCallback, CreateLoaderContextStatusCallback callback, const char* customCacheDir, const char* customDownloadDir)
+{
+	std::thread([=]() {
+		std::future<AppContext*> ret = std::async(std::launch::async, CreateLoaderContext, callback, customCacheDir, customDownloadDir);
+		AppContext* result = ret.get();
+
+		completedCallback(result);
+	}).detach();
 }
 
 void DestroyLoaderContext(AppContext* handle)

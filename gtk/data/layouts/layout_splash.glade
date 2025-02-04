@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.40.0 -->
+<interface>
+  <requires lib="gtk+" version="3.24"/>
+  <object class="GtkWindow" id="splash_window">
+    <property name="can-focus">False</property>
+    <property name="default-width">450</property>
+    <property name="default-height">200</property>
+    <property name="decorated">False</property>
+    <child>
+      <object class="GtkFixed" id="splash_fixed">
+        <property name="width-request">450</property>
+        <property name="height-request">200</property>
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <child>
+          <object class="GtkImage" id="splash_background_image">
+            <property name="width-request">450</property>
+            <property name="height-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="pixbuf">../ui/splash_image.png</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="splash_label_status">
+            <property name="width-request">270</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Loading</property>
+            <property name="justify">center</property>
+            <property name="single-line-mode">True</property>
+          </object>
+          <packing>
+            <property name="x">180</property>
+            <property name="y">180</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
