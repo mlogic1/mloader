@@ -8,6 +8,7 @@
 #include <exception>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 namespace mloader
 {
