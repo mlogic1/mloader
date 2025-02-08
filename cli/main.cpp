@@ -182,8 +182,6 @@ int main(int argc, char* argv[])
 			{
 				ChangeMenu(std::get<std::string>(executeActionResult.Parameter));
 			}
-
-			// mloader::RefreshMetadata(context);
 		}
 		else if (c == KEY_BKSP)
 		{

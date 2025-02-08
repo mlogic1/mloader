@@ -12,3 +12,6 @@ rclone:
 VRPManager:
     - load json to struct
     - move findFirstFileWithExtension to some utility
+
+Logging:
+    - implement logging

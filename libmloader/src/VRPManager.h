@@ -19,14 +19,14 @@ namespace mloader
 			VRPManager(const RClone& rclone, const Zip& zip, const fs::path& cacheDir, const fs::path& downloadDir);
 			~VRPManager();
 
-			bool DbgRefreshMeta();
-			bool RefreshMeta();
+			bool RefreshMetadata(bool forceRedownload = false);
 
 			const std::vector<GameInfo>& GetGameList() const;
 			void DownloadGame(const GameInfo& game) const;
 
 		private:
 			bool CheckVRPPublicCredentials();
+			bool DownloadMetadata();
 			
 		private:
 			const RClone& m_rClone;

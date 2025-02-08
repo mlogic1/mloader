@@ -32,22 +32,29 @@ namespace mloader
 		
 	}
 
-	bool VRPManager::RefreshMeta()
+	bool VRPManager::DownloadMetadata()
 	{
-		m_rClone.SyncFile(m_baseUri, "meta.7z", m_cacheDir);
-		return true;
+		return m_rClone.SyncFile(m_baseUri, "meta.7z", m_cacheDir);
 	}
 
-	bool VRPManager::DbgRefreshMeta()
+	bool VRPManager::RefreshMetadata(bool forceRedownload)
 	{
 		fs::path metaFile = m_cacheDir / "meta.7z";	
 		fs::path metaDir = m_cacheDir / "metadata";
 		fs::path gameListFile = metaDir / "VRP-GameList.txt";
 
-		if (!fs::exists(metaFile))
+		if (!fs::exists(metaFile) || forceRedownload)
 		{
-			return false;
+			if (!DownloadMetadata())
+			{
+				return false;
+			}
 		}
+		else
+		{
+			// TO implement: Check if the metafile is older than 24 hours, then redownload meta regardless
+		}
+
 
 		fs::remove_all(metaDir);
 		fs::create_directories(metaDir);
@@ -72,31 +79,37 @@ namespace mloader
 		{
 			return false;
 		}		
-
+		
+		std::vector<std::string> csvRows;
 		std::string line;
 
 		std::getline(file, line);
 
 		while(std::getline(file, line))
 		{
+			csvRows.push_back(std::move(line));
+		}
+
+		for(const std::string& line : csvRows)
+		{
 			std::stringstream ss(line);
 			std::string item;
 			GameInfo info;
 
 			std::getline(ss, item, ';');
-			info.GameName = item;
+			info.GameName = std::move(item);
 
 			std::getline(ss, item, ';');
-			info.ReleaseName = item;
+			info.ReleaseName = std::move(item);
 
 			std::getline(ss, item, ';');
-			info.PackageName = item;
+			info.PackageName = std::move(item);
 			
 			std::getline(ss, item, ';');
 			info.VersionCode = std::stoi(item);
 		
 			std::getline(ss, item, ';');
-			std::string LastUpdated;
+			info.LastUpdated = std::move(item);
 		
 			std::getline(ss, item, ';');
 			info.SizeMB = std::stoi(item);;
@@ -110,7 +123,7 @@ namespace mloader
 			std::getline(ss, item, ';');
 			info.RatingCount = std::stoi(item);
 
-			const std::string gameHash = CalculateGameMD5Hash(info.ReleaseName);
+			// const std::string gameHash = CalculateGameMD5Hash(info.ReleaseName);
 
 			m_gameList.push_back(std::move(info));
 		}

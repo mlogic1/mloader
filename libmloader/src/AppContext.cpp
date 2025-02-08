@@ -150,6 +150,21 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 		return nullptr;
 	}
 
+	try
+	{
+		GenericCallback(callback, "Loading metadata");
+		RefreshMetadata(appContext);
+	}catch(std::runtime_error& error)
+	{
+		err_msg = error.what();
+		delete appContext->Rclone;
+		delete appContext->zip7;
+		delete appContext->Adb;
+		delete appContext->VrpManager;
+		delete appContext;
+		return nullptr;
+	}
+
 	return appContext;
 }
 
@@ -177,9 +192,19 @@ void DestroyLoaderContext(AppContext* handle)
 
 void RefreshMetadata(AppContext* context)
 {
-	// context->VrpManager->RefreshMeta();
+	if (!context->VrpManager->RefreshMetadata())
+	{
+		err_msg = "Unable to download or load metadata";
+	}
+}
 
-	context->VrpManager->DbgRefreshMeta();
+void RefreshMetadataAsync(RefreshMetadataAsyncCompletedCallback completedCallback, AppContext* context)
+{
+	std::thread([=]() {
+		std::future<void> ret = std::async(std::launch::async, RefreshMetadata, context);
+
+		completedCallback(context);
+	}).detach();
 }
 
 void GetAppList(AppContext* context, App** app, int* num)
@@ -227,7 +252,6 @@ bool DownloadApp(AppContext* context, App* app)
 	{
 		return false;
 	}
-
 
 	context->VrpManager->DownloadGame(*it);
 	

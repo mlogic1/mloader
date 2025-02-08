@@ -1,4 +1,5 @@
 #include "SplashWindow.h"
+#include "MainWindow.h"
 #include <mloader/AppContext.h>
 #include <iostream>
 #include <memory>
@@ -6,7 +7,7 @@
 #include <future>
 
 std::unique_ptr<SplashWindow> splashWindow = nullptr;
-// std::unique_ptr<MainWindow> mainWindow = nullptr;
+std::unique_ptr<MainWindow> mainWindow = nullptr;
 AppContext* mloaderContext = nullptr;
 
 // Callback function to be called when mloader reports a new status
@@ -30,7 +31,7 @@ gboolean OnMLoaderAppContextCreateStatusCompletedMainThread(gpointer data) {
 		splashWindow.reset();
 		splashWindow = nullptr;
 		mloaderContext = context;
-		// make the main window
+		mainWindow = std::make_unique<MainWindow>(mloaderContext);
 	}
 	
 	return false;	// Return FALSE to remove this function from the idle list
@@ -60,7 +61,7 @@ int main(int argc, char* argv[])
 	gtk_main();
 
 	splashWindow.reset();
-	// mainWindow.reset();
+	mainWindow.reset();
 	DestroyLoaderContext(mloaderContext);
 	return 0;
 }

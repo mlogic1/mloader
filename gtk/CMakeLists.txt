@@ -10,6 +10,7 @@ pkg_check_modules(GTK3 REQUIRED IMPORTED_TARGET gtk+-3.0)
 
 add_executable(mloader-gtk	src/main.cpp
 							src/SplashWindow.cpp
+							src/MainWindow.cpp
 )
 target_link_libraries(mloader-gtk PRIVATE 	mloader
 											PkgConfig::GTK3)
