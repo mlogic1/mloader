@@ -21,6 +21,7 @@ namespace mloader
 
 		private:
 			fs::path m_cacheDir;
+			fs::path m_7zToolPath;	// points to 7z executable
 	};
 }
 

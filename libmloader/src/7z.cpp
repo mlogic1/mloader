@@ -21,15 +21,17 @@ namespace mloader
 	bool Zip::CheckAndDownloadTool()
 	{
 		const fs::path zipToolDir = m_cacheDir / "7z/";
+		m_7zToolPath = zipToolDir / "7zz";	// Note for windows: i think the tool is called 7z on windowsß∫
 
 	#ifdef _WIN32
-		const std::string httpFile{"https://www.7-zip.org/a/7zr.exe"};
-		const fs::path zipToolPath = zipToolDir / "7z";
-		const fs::path zipToolPathZip = m_cacheDir / "rclone-v1.69.0-linux-amd64.zip";
+		// const std::string httpFile{"https://www.7-zip.org/a/7zr.exe"};
+		// const fs::path zipToolPath = zipToolDir / "7z";
+		// support for windows is not yet implemented
+	#elif __APPLE__
+		const std::string httpFile{"https://www.7-zip.org/a/7z2409-mac.tar.xz"};
+		const fs::path zipToolPathZip = m_cacheDir / "7z2409-mac.tar.xz";
 	#else
 		const std::string httpFile{"https://www.7-zip.org/a/7z2409-linux-x64.tar.xz"};
-		
-		const fs::path zipToolPath = zipToolDir / "7z";
 		const fs::path zipToolPathZip = m_cacheDir / "7z2409-linux-x64.tar.xz";
 	#endif
 
@@ -41,7 +43,7 @@ namespace mloader
 			}
 		}
 
-		if (!fs::exists(zipToolPath))
+		if (!fs::exists(m_7zToolPath))
 		{
 			if (!fs::exists(zipToolPathZip))
 			{
@@ -89,12 +91,10 @@ namespace mloader
 			return false;
 		}
 
-		const fs::path& zipExecutable = m_cacheDir / "7z/7zz";
-
 		// unzip
 		FILE* fp;
 		char strbuffer[512];
-		snprintf(strbuffer, sizeof(strbuffer), "%s x -aoa -bsp1 -bso0 -o%s -p%s %s", zipExecutable.c_str(), destinationDir.c_str(), password.c_str(), archiveFile.c_str());
+		snprintf(strbuffer, sizeof(strbuffer), "%s x -aoa -bsp1 -bso0 -o%s -p%s %s", m_7zToolPath.c_str(), destinationDir.c_str(), password.c_str(), archiveFile.c_str());
 		const std::string dbgStr = strbuffer;
 		fp = popen(strbuffer, "r");
 		if (fp == NULL)
