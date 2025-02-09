@@ -3,7 +3,7 @@ fix "cls/clear" calls with a nicer printing system. (Possibly redrawing characte
 general:
     - move /cli.cpp/h files to /cli/src
     - by default, do not build the cli tool. Set it behind a cmake variable
-    - only build the gtk tool on linux
+    - change App** to App*&
 
 rclone:
     - should have queueable jobs
@@ -14,4 +14,4 @@ VRPManager:
     - move findFirstFileWithExtension to some utility
 
 Logging:
-    - implement logging
+    - implement logging to file

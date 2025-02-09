@@ -18,6 +18,9 @@ struct AppContext
 	mloader::RClone*		Rclone;
 	mloader::Zip*			zip7;
 	mloader::ADB*			Adb;
+	
+	// callbacks
+	ADBDeviceListChangedCallback	AdbDeviceListChangedCallback = nullptr;
 };
 
 static std::string DetermineCacheDir()
@@ -55,6 +58,14 @@ static inline void GenericCallback(CreateLoaderContextStatusCallback callback, c
 	if (callback != NULL)
 	{
 		callback(message);
+	}
+}
+
+void OnAdbDeviceListChangedEvent(AppContext* context)
+{
+	if (context->AdbDeviceListChangedCallback)
+	{
+		context->AdbDeviceListChangedCallback(context);
 	}
 }
 
@@ -124,7 +135,7 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 	try
 	{
 		GenericCallback(callback, "Initializing ADB");
-		appContext->Adb = new mloader::ADB(cacheDir);
+		appContext->Adb = new mloader::ADB(cacheDir, std::bind(OnAdbDeviceListChangedEvent, appContext));
 	}
 	catch(std::runtime_error& error)
 	{
@@ -256,4 +267,36 @@ bool DownloadApp(AppContext* context, App* app)
 	context->VrpManager->DownloadGame(*it);
 	
 	return true;
+}
+
+void GetDeviceList(AppContext* context, AdbDevice*& device, int* num)
+{
+	std::vector<AdbDevice> adbDevices = context->Adb->GetAdbDevices();
+	*num = static_cast<int>(adbDevices.size());
+	device = new AdbDevice[*num];
+	
+	for(int i = 0; i < *num; ++i)
+	{
+		device[i] = *DuplicateAdbDevice(&adbDevices[i]);
+	}
+}
+
+void FreeDeviceList(AdbDevice*& device, int* num)
+{
+	for (int i = 0; i < *num ; ++i)
+	{
+		DestroyAdbDevice(device[i]);
+		delete &device[i];
+		device = nullptr;
+	}
+}
+
+void SetADBDeviceListChangedCallback(AppContext* context, ADBDeviceListChangedCallback callback)
+{
+	context->AdbDeviceListChangedCallback = callback;
+}
+
+void ClearADBDeviceListChangedCallback(AppContext* context)
+{
+	context->AdbDeviceListChangedCallback = nullptr;
 }
