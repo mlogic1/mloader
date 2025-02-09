@@ -19,11 +19,10 @@ namespace mloader
 		
 		private:
 			bool CheckAndDownloadTool();
-			
-			// bool copyFile
 
 		private:
 			fs::path m_cacheDir;
+			fs::path m_rcloneToolPath;	// points to rclone executable
 	};
 }
 

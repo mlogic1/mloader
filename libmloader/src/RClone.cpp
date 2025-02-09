@@ -22,16 +22,24 @@ namespace mloader
 	bool RClone::CheckAndDownloadTool()
 	{
 	#ifdef _WIN32
-		const std::string httpFile{"https://downloads.rclone.org/v1.69.0/rclone-v1.69.0-windows-amd64.zip"};
+		// const std::string httpFile{"https://downloads.rclone.org/v1.69.0/rclone-v1.69.0-windows-amd64.zip"};
+		// no support for windows yet
+	#elif __APPLE__
+		// x86 Intel (no support for apple arm yet.)
+		const std::string httpFile{"https://downloads.rclone.org/v1.69.0/rclone-v1.69.0-osx-amd64.zip"};
+
+		const fs::path rcloneToolDir = m_cacheDir / "rclone-v1.69.0-osx-amd64/";
+		const fs::path rcloneToolPathZip = m_cacheDir / "rclone-v1.69.0-osx-amd64.zip";
 	#else
 		const std::string httpFile{"https://downloads.rclone.org/v1.69.0/rclone-v1.69.0-linux-amd64.zip"};
 
 		const fs::path rcloneToolDir = m_cacheDir / "rclone-v1.69.0-linux-amd64/";
-		const fs::path rcloneToolPath = rcloneToolDir / "rclone";
 		const fs::path rcloneToolPathZip = m_cacheDir / "rclone-v1.69.0-linux-amd64.zip";
 	#endif
+		
+		m_rcloneToolPath = rcloneToolDir / "rclone";
 
-		if (!fs::exists(rcloneToolPath))
+		if (!fs::exists(m_rcloneToolPath))
 		{
 			if (!fs::exists(rcloneToolPathZip))
 			{
@@ -76,19 +84,10 @@ namespace mloader
 
 	bool RClone::SyncFile(const std::string& baseUrl, const std::string& fileName, const fs::path& directory) const
 	{
-	#ifdef _WIN32
-		const std::string httpFile{"https://downloads.rclone.org/v1.69.0/rclone-v1.69.0-windows-amd64.zip"};
-	#else
-		const std::string httpFile{"https://downloads.rclone.org/v1.69.0/rclone-v1.69.0-linux-amd64.zip"};
-
-		const fs::path rcloneToolDir = m_cacheDir / "rclone-v1.69.0-linux-amd64/";
-		const fs::path rcloneToolPath = rcloneToolDir / "rclone";
-	#endif
-
 			FILE* fp;
 			char strbuffer[512];
 
-			snprintf(strbuffer, sizeof(strbuffer), "%s --http-url %s --tpslimit 1.0 --tpslimit-burst 3 sync \":http:/%s\" \"%s\"", rcloneToolPath.c_str(), baseUrl.c_str(), fileName.c_str(), directory.c_str());
+			snprintf(strbuffer, sizeof(strbuffer), "%s --http-url %s --tpslimit 1.0 --tpslimit-burst 3 sync \":http:/%s\" \"%s\"", m_rcloneToolPath.c_str(), baseUrl.c_str(), fileName.c_str(), directory.c_str());
 			const std::string dbgStr{strbuffer};
 			fp = popen(strbuffer, "r");
 			if (fp == NULL)
@@ -118,15 +117,6 @@ namespace mloader
 	
 	bool RClone::CopyFile(const std::string& baseUrl, const std::string& fileId, const fs::path& directory) const
 	{
-		#ifdef _WIN32
-			const std::string httpFile{"https://downloads.rclone.org/v1.69.0/rclone-v1.69.0-windows-amd64.zip"};
-		#else
-			const std::string httpFile{"https://downloads.rclone.org/v1.69.0/rclone-v1.69.0-linux-amd64.zip"};
-
-			const fs::path rcloneToolDir = m_cacheDir / "rclone-v1.69.0-linux-amd64/";
-			const fs::path rcloneToolPath = rcloneToolDir / "rclone";
-		#endif
-
 		FILE* fp;
 		char strbuffer[1024];
 
@@ -134,7 +124,7 @@ namespace mloader
 
 		// prompt override here?
 
-		snprintf(strbuffer, sizeof(strbuffer), "%s --http-url %s --tpslimit 1.0 --tpslimit-burst 3 copy \":http:/%s\" \"%s\" --transfers 1 --multi-thread-streams 0 --progress", rcloneToolPath.c_str(), baseUrl.c_str(), fileId.c_str(), directoryWithSubdir.c_str());
+		snprintf(strbuffer, sizeof(strbuffer), "%s --http-url %s --tpslimit 1.0 --tpslimit-burst 3 copy \":http:/%s\" \"%s\" --transfers 1 --multi-thread-streams 0 --progress", m_rcloneToolPath.c_str(), baseUrl.c_str(), fileId.c_str(), directoryWithSubdir.c_str());
 		const std::string dbgStr{strbuffer};
 		fp = popen(strbuffer, "r");
 		if (fp == NULL)
