@@ -2,6 +2,7 @@
 #define ADB_H
 
 #include "AdbDeviceImpl.h"
+#include <atomic>
 #include <filesystem>
 #include <functional>
 #include <mutex>

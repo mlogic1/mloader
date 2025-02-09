@@ -211,7 +211,7 @@ namespace mloader
 					// return false;
 				}
 				
-				printf("Refreshing device list\n");
+				// printf("Refreshing device list\n"); // TODO: log this instead of print
 				
 				char path[1035];
 				std::vector<std::string> adbDevices;	// list from shell
@@ -242,7 +242,6 @@ namespace mloader
 				for (std::string adbDeviceLine : adbDevices)
 				{
 					adbDeviceLine.erase(std::remove(adbDeviceLine.begin(), adbDeviceLine.end(), '\n'), adbDeviceLine.cend());
-					// adbDeviceLine.
 					std::istringstream iss(adbDeviceLine);
 					std::string deviceId, deviceStatus, deviceModel;	// Note: model can only be obtained for authorized devices
 					AdbDeviceStatus eDeviceStatus = AdbDeviceStatus::Unknown;
