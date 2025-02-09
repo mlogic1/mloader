@@ -84,33 +84,33 @@ namespace mloader
 
 	bool RClone::SyncFile(const std::string& baseUrl, const std::string& fileName, const fs::path& directory) const
 	{
-			FILE* fp;
-			char strbuffer[512];
+		FILE* fp;
+		char strbuffer[512];
 
-			snprintf(strbuffer, sizeof(strbuffer), "%s --http-url %s --tpslimit 1.0 --tpslimit-burst 3 sync \":http:/%s\" \"%s\"", m_rcloneToolPath.c_str(), baseUrl.c_str(), fileName.c_str(), directory.c_str());
-			const std::string dbgStr{strbuffer};
-			fp = popen(strbuffer, "r");
-			if (fp == NULL)
-			{
-				perror("popen");
-				return false;
-			}
-			
-			char path[1035];
-			// Read the output a line at a time - output it.
-			while (fgets(path, sizeof(path), fp) != NULL) {
-				// printf("%s", path);
-			}
+		snprintf(strbuffer, sizeof(strbuffer), "%s --http-url %s --tpslimit 1.0 --tpslimit-burst 3 sync \":http:/%s\" \"%s\"", m_rcloneToolPath.c_str(), baseUrl.c_str(), fileName.c_str(), directory.c_str());
+		const std::string dbgStr{strbuffer};
+		fp = popen(strbuffer, "r");
+		if (fp == NULL)
+		{
+			perror("popen");
+			return false;
+		}
+		
+		char path[1035];
+		// Read the output a line at a time - output it.
+		while (fgets(path, sizeof(path), fp) != NULL) {
+			// printf("%s", path);
+		}
 
-			int status = pclose(fp);
-			if (status == -1) {
-				perror("pclose");
-				return false;
-			} 
-			else
-			{
-				printf("Command exited with status: %d\n", WEXITSTATUS(status));
-			}
+		int status = pclose(fp);
+		if (status == -1) {
+			perror("pclose");
+			return false;
+		} 
+		else
+		{
+			printf("Command exited with status: %d\n", WEXITSTATUS(status));
+		}
 
 		return true;
 	}
