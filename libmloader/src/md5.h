@@ -8,11 +8,18 @@ namespace mloader
 {
 	inline std::string CalculateGameMD5Hash(const std::string& releaseName)
 	{
-		// for now, this only works on linux and mac
+	#ifdef _WIN32
+		// const char* md5CommandFormat = "";
+		// support for windows not yet implemented
+	#elif __APPLE__
+		const char* md5CommandFormat = "echo \"%s\" | md5 | awk '{print $1}' | tr -d '\n'";
+	#else
+		const char* md5CommandFormat = "echo \"%s\" | md5sum | awk '{print $1}' | tr -d '\n'";
+	#endif
 		std::string result;
 
 		char buffer[1024];
-		snprintf(buffer, sizeof(buffer), "echo \"%s\" | md5sum | awk '{print $1}' | tr -d '\n'", releaseName.c_str());
+		snprintf(buffer, sizeof(buffer), md5CommandFormat, releaseName.c_str());
 
 		FILE* fp = popen(buffer, "r");
 		if (fp == NULL)
