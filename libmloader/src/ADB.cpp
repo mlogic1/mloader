@@ -20,17 +20,22 @@ namespace mloader
 
 	bool ADB::CheckAndDownloadTool()
 	{
+		const fs::path adbToolDir = m_cacheDir / "platform-tools/";
+		m_adbToolPath = adbToolDir/ "adb";
 	#ifdef _WIN32
-		const std::string httpFile{"https://dl.google.com/android/repository/platform-tools-latest-windows.zip"};
+		// const std::string httpFile{"https://dl.google.com/android/repository/platform-tools-latest-windows.zip"};
+		// no support for windows yet
+	#elif __APPLE__
+		// x86 Intel (no support for apple arm yet.)
+		const std::string httpFile{"https://dl.google.com/android/repository/platform-tools-latest-darwin.zip"};
+		const fs::path adbToolPathZip = m_cacheDir / "platform-tools-latest-darwin.zip";
+		
 	#else
 		const std::string httpFile{"https://dl.google.com/android/repository/platform-tools-latest-linux.zip"};
-
-		const fs::path adbToolDir = m_cacheDir / "platform-tools/";
-		const fs::path adbToolPath = adbToolDir/ "adb";
 		const fs::path adbToolPathZip = m_cacheDir / "platform-tools-latest-linux.zip";
 	#endif
 
-		if (!fs::exists(adbToolPath))
+		if (!fs::exists(m_adbToolPath))
 		{
 			if (!fs::exists(adbToolPathZip))
 			{

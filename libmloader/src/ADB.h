@@ -19,6 +19,7 @@ namespace mloader
 
 		private:
 			fs::path m_cacheDir;
+			fs::path m_adbToolPath;	// points to adb executable
 	};
 }
 
