@@ -1,6 +1,18 @@
 #ifndef APP_H
 #define APP_H
 
+enum AppStatus
+{
+	NoInfo = 0,	// default state (downloadable)
+	Downloading,
+	DownloadError,
+	Extracting,
+	ExtractingError,
+	Installable,
+	Installing,
+	Installed
+};
+
 typedef struct 
 {
 	const char* GameName;

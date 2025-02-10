@@ -281,7 +281,7 @@ void GetDeviceList(AppContext* context, AdbDevice*& device, int* num)
 	}
 }
 
-void FreeDeviceList(AdbDevice*& device, int* num)
+void FreeDeviceList(AdbDevice* device, int* num)
 {
 	for (int i = 0; i < *num ; ++i)
 	{

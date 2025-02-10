@@ -227,6 +227,7 @@
               <object class="GtkButton" id="main_button_download">
                 <property name="label" translatable="yes"> Download</property>
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
                 <property name="image">image2</property>
@@ -242,6 +243,7 @@
               <object class="GtkButton" id="main_button_install">
                 <property name="label" translatable="yes"> Install</property>
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
                 <property name="image">image1</property>
@@ -269,7 +271,7 @@
             </child>
             <child>
               <object class="GtkComboBox" id="main_combo_device_list">
-                <property name="width-request">170</property>
+                <property name="width-request">200</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="model">liststoreDeviceList</property>

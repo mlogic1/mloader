@@ -15,3 +15,6 @@ VRPManager:
 
 Logging:
     - implement logging to file
+
+gtk/linux specific:
+    - make devices on device list which aren't authorized red
