@@ -52,18 +52,15 @@ const StringList& GameListMenu::GetOptions()
 	m_options.clear();
 	m_optionsIndexToApp.clear();
 
-	if (m_appList != nullptr)
+	if (m_appList == nullptr)
 	{
-		// FreeAppList(m_appList);
+		m_appList = GetAppList(m_appContext, m_appList, &m_numApps);
 	}
 
-	int numApps = 0;
-	// GetAppList(m_appContext, &m_appList, &numApps);
-
-	for(int i = 0; i < numApps; ++i)
+	for(int i = 0; i < m_numApps; ++i)
 	{
-		m_options.emplace_back(m_appList[i].GameName);
-		m_optionsIndexToApp.emplace((uint32_t)i, &m_appList[i]);
+		m_options.emplace_back(m_appList[i]->GameName);
+		m_optionsIndexToApp.emplace((uint32_t)i, m_appList[i]);
 	}
 
 	m_options.emplace_back("Return to main menu");

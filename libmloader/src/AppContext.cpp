@@ -9,6 +9,7 @@
 #include <string>
 #include <thread>
 #include <future>
+#include <unordered_map>
 
 namespace fs = std::filesystem;
 

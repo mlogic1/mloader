@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Menu.h"
-#include "unordered_map"
+#include <unordered_map>
 #include <mloader/App.h>
 
 class GameListMenu : public Menu
@@ -19,6 +19,7 @@ class GameListMenu : public Menu
 		StringList m_options;
 		AppContext* m_appContext;
 
-		App* m_appList = nullptr;
+		App** m_appList = nullptr;
+		int m_numApps = 0;
 		std::unordered_map<uint32_t, App*> m_optionsIndexToApp;
 };
