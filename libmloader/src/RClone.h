@@ -3,6 +3,7 @@
 
 #include <string>
 #include <filesystem>
+#include <functional>
 
 namespace fs = std::filesystem;
 
@@ -15,7 +16,7 @@ namespace mloader
 			~RClone();
 
 			bool SyncFile(const std::string& baseUrl, const std::string& fileName, const fs::path& directory) const;
-			bool CopyFile(const std::string& baseUrl, const std::string& fileId, const fs::path& directory) const;
+			bool CopyFile(const std::string& baseUrl, const std::string& fileId, const fs::path& directory, std::function<void(uint8_t)> progressCallback = nullptr) const;
 		
 		private:
 			bool CheckAndDownloadTool();

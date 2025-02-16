@@ -18,6 +18,8 @@ namespace mloader
 		float Rating;
 		int32_t RatingCount;
 	};
+
+	bool operator<(const GameInfo& lhs, const GameInfo& rhs);
 }
 
 #endif // GAMEINFO_H

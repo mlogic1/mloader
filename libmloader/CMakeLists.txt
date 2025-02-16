@@ -16,6 +16,7 @@ add_library(mloader SHARED  src/AppContext.cpp
 							src/ADB.cpp
                             src/curl_global.cpp
 							src/AdbDevice.cpp
+                            src/model/GameInfo.cpp
 )
 
 set(LIBMLOADER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)

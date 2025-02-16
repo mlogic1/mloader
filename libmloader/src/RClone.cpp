@@ -1,7 +1,7 @@
 #include "RClone.h"
 #include "curl_global.h"
-#include <filesystem>
 #include <exception>
+#include <filesystem>
 #include <iostream>
 #include <regex>
 #include <fstream>
@@ -115,7 +115,7 @@ namespace mloader
 		return true;
 	}
 	
-	bool RClone::CopyFile(const std::string& baseUrl, const std::string& fileId, const fs::path& directory) const
+	bool RClone::CopyFile(const std::string& baseUrl, const std::string& fileId, const fs::path& directory, std::function<void(uint8_t)> progressCallback) const
 	{
 		FILE* fp;
 		char strbuffer[1024];
@@ -134,7 +134,6 @@ namespace mloader
 		}
 		
 		char path[2048];
-		system("clear");
 
 		std::regex percentage_regex(R"((\d+)%(?=, ))"); // detect progress
 		std::smatch match;
@@ -145,8 +144,12 @@ namespace mloader
 
 			if (std::regex_search(line, match, percentage_regex))
 			{
-				std::cout << match[1] << "%" << std::endl;
-				// TODO: report this through a callback
+				// std::cout << match[1] << "%" << std::endl;
+				uint8_t progress = std::stoul(match[1]);
+				if (progressCallback)
+				{
+					progressCallback(progress);
+				}
 			}
 		}
 
@@ -157,7 +160,7 @@ namespace mloader
 		} 
 		else
 		{
-			printf("Command exited with status: %d\n", WEXITSTATUS(status));
+			// printf("Command exited with status: %d\n", WEXITSTATUS(status));
 			// TODO: report this through a callback
 		}
 		return true;

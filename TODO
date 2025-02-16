@@ -3,10 +3,9 @@ fix "cls/clear" calls with a nicer printing system. (Possibly redrawing characte
 general:
     - move /cli.cpp/h files to /cli/src
     - by default, do not build the cli tool. Set it behind a cmake variable
-    - change App** to App*&
+    - implement a download queue to avoid concurrent downloads
 
 rclone:
-    - should have queueable jobs
     - should have report progress and complete/fail callbacks
 
 VRPManager:
@@ -18,3 +17,5 @@ Logging:
 
 gtk/linux specific:
     - make devices on device list which aren't authorized red
+    - format Popularity column to 2 decimals
+    - tile view

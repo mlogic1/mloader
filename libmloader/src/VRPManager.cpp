@@ -12,11 +12,12 @@
 
 namespace mloader
 {
-	VRPManager::VRPManager(const RClone& rclone, const Zip& zip, const fs::path& cacheDir, const fs::path& downloadDir)
+	VRPManager::VRPManager(const RClone& rclone, const Zip& zip, const fs::path& cacheDir, const fs::path& downloadDir, std::function<void(const GameInfo&, const AppStatus, const int)> gameStatusChangedCallback)
 	:	m_rClone(rclone),
 		m_zip(zip),
 		m_cacheDir(cacheDir),
-		m_downloadDir(downloadDir)
+		m_downloadDir(downloadDir),
+		m_gameStatusChangedCallback(gameStatusChangedCallback)
 	{
 		std::string error{""};
 
@@ -29,12 +30,21 @@ namespace mloader
 
 	VRPManager::~VRPManager()
 	{
-		
+		m_gameStatusChangedCallback = nullptr;
 	}
 
 	bool VRPManager::DownloadMetadata()
 	{
 		return m_rClone.SyncFile(m_baseUri, "meta.7z", m_cacheDir);
+	}
+
+	void VRPManager::ChangeGameStatus(const GameInfo& gameInfo, AppStatus newStatus, int statusParam)
+	{
+		m_gameList[gameInfo] = newStatus;
+		if (m_gameStatusChangedCallback)
+		{
+			m_gameStatusChangedCallback(gameInfo, newStatus, statusParam);
+		}
 	}
 
 	bool VRPManager::RefreshMetadata(bool forceRedownload)
@@ -55,7 +65,6 @@ namespace mloader
 			// TO implement: Check if the metafile is older than 24 hours, then redownload meta regardless
 		}
 
-
 		fs::remove_all(metaDir);
 		fs::create_directories(metaDir);
 
@@ -71,7 +80,6 @@ namespace mloader
 
 		// refresh game list
 		m_gameList.clear();
-		m_gameList.reserve(4096);
 
 		std::ifstream file(gameListFile);
 
@@ -125,16 +133,20 @@ namespace mloader
 
 			// const std::string gameHash = CalculateGameMD5Hash(info.ReleaseName);
 
-			m_gameList.push_back(std::move(info));
+			AppStatus appStatus = AppStatus::NoInfo;
+			if (GameInstalled(info))
+			{
+				appStatus = AppStatus::Downloaded;
+			}
+			m_gameList.emplace(std::move(info), appStatus);
 		}
 		return true;
 	}
 
-	const std::vector<GameInfo>& VRPManager::GetGameList() const
+	const std::map<GameInfo, AppStatus>& VRPManager::GetGameList() const
 	{
 		return m_gameList;
 	}
-
 
 	static fs::path findFirstFileWithExtension(const fs::path& dirPath, const std::string& extension) {
 		for (const auto& entry : fs::directory_iterator(dirPath)) {
@@ -145,21 +157,76 @@ namespace mloader
 		return ""; // Return an empty path if no file is found
 	}
 
-	void VRPManager::DownloadGame(const GameInfo& game) const
+	void VRPManager::DownloadGame(const GameInfo& game)
 	{
-		const std::string gameHash = CalculateGameMD5Hash(game.ReleaseName);
-		if (m_rClone.CopyFile(m_baseUri, gameHash, m_cacheDir))
+		if (m_gameList[game] != AppStatus::NoInfo && m_gameList[game] != AppStatus::DownloadError)
 		{
+			return; // or throw
+		}
+
+		ChangeGameStatus(game, AppStatus::Downloading, 0);
+
+		// Download progress callback
+		auto downloadProgressCallbackFunc = [this, game](uint8_t progress) -> void
+		{
+			if (this->m_gameStatusChangedCallback)
+			{
+				ChangeGameStatus(game, AppStatus::Downloading, static_cast<int>(progress));
+			}
+		};
+
+		const std::string gameHash = CalculateGameMD5Hash(game.ReleaseName);
+		if (m_rClone.CopyFile(m_baseUri, gameHash, m_cacheDir, downloadProgressCallbackFunc))
+		{
+			ChangeGameStatus(game, AppStatus::Extracting);
 			// find the first .7z file in the temp download dir
 			fs::path zippedDirectory = m_cacheDir / fs::path(gameHash);
 			fs::path zipFile = findFirstFileWithExtension(zippedDirectory, ".001");
 
 			if (zipFile.empty())
 			{
+				ChangeGameStatus(game, AppStatus::ExtractingError);
 				throw std::runtime_error("Unable to locate zip to extract " + game.ReleaseName);
 			}
-			m_zip.Unzip7z(zipFile, m_downloadDir, m_password);
+			if (m_zip.Unzip7z(zipFile, m_downloadDir, m_password))
+			{
+				ChangeGameStatus(game, AppStatus::Downloaded);
+			}
+			else
+			{
+				ChangeGameStatus(game, AppStatus::ExtractingError);
+			}
 		}
+		else
+		{
+			ChangeGameStatus(game, AppStatus::DownloadError);
+		}
+	}
+
+	std::string VRPManager::GetAppThumbImage(const GameInfo& game) const
+	{
+		const fs::path metaDir = m_cacheDir / "metadata/.meta/thumbnails/";
+
+		if (!fs::exists(metaDir))
+		{
+			return "";
+		}
+
+		const fs::path thumbFile = metaDir / (game.PackageName + ".jpg");
+
+		if (fs::exists(thumbFile))
+		{
+			return thumbFile;
+		}
+
+		return "";
+	}
+
+	bool VRPManager::GameInstalled(const GameInfo& game) const
+	{
+		const fs::path manifestFile = m_downloadDir / game.ReleaseName / "release.manifest";
+
+		return fs::exists(manifestFile);
 	}
 
 	bool VRPManager::CheckVRPPublicCredentials()

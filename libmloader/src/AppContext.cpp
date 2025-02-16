@@ -14,13 +14,19 @@ namespace fs = std::filesystem;
 
 struct AppContext
 {
-	mloader::VRPManager*	VrpManager;
-	mloader::RClone*		Rclone;
-	mloader::Zip*			zip7;
-	mloader::ADB*			Adb;
+	mloader::VRPManager*			VrpManager;
+	mloader::RClone*				Rclone;
+	mloader::Zip*					zip7;
+	mloader::ADB*					Adb;
+
+	// App list
+	App** 							AppList = nullptr;
+	// TODO: make device list context owned as well
 	
 	// callbacks
-	ADBDeviceListChangedCallback	AdbDeviceListChangedCallback = nullptr;
+	ADBDeviceListChangedCallback	AdbDeviceListChangedCallback		= nullptr;
+	AppStatusChangedCallback		AppsStatusChangedCallback			= nullptr;
+	void*							AppsStatusChangedCallbackUserData	= nullptr;
 };
 
 static std::string DetermineCacheDir()
@@ -61,11 +67,57 @@ static inline void GenericCallback(CreateLoaderContextStatusCallback callback, c
 	}
 }
 
+static char* GetUpdateStatusString(AppStatus appStatus, int statusParam = -1)
+{
+	static std::unordered_map<AppStatus, const char*> APP_STATUS_STR_MAP =
+	{
+		{ AppStatus::NoInfo, 			"" 					},
+		{ AppStatus::Downloading, 		"Downloading" 		},
+		{ AppStatus::DownloadError, 	"Download Error"	},
+		{ AppStatus::Extracting, 		"Extracting"		},
+		{ AppStatus::ExtractingError,	"Extracting Error"	},
+		{ AppStatus::Downloaded,		"Downloaded"		},
+		{ AppStatus::Installing,		"Installing"		}
+	};
+
+	char* result = nullptr;
+	if (appStatus == AppStatus::Downloading)
+	{
+		asprintf(&result, "%s (%d%%)", APP_STATUS_STR_MAP.at(appStatus), statusParam);
+	}
+	else
+	{
+		result = strdup(APP_STATUS_STR_MAP.at(appStatus));
+	}
+	
+	return result;
+}
+
 void OnAdbDeviceListChangedEvent(AppContext* context)
 {
 	if (context->AdbDeviceListChangedCallback)
 	{
 		context->AdbDeviceListChangedCallback(context);
+	}
+}
+
+void OnGameInfoStatusChanged(AppContext* context, const mloader::GameInfo& gameInfo, const AppStatus appStatus, const int statusParam)
+{
+	if (context->AppsStatusChangedCallback && context->AppList != nullptr)
+	{
+		App* updatedApp = nullptr;
+		for (int i = 0; i < context->VrpManager->GetGameList().size(); ++i)
+		{
+			if (context->AppList[i]->ReleaseName == gameInfo.ReleaseName)
+			{
+				updatedApp = context->AppList[i];
+				updatedApp->Status = appStatus;
+				free((char*)context->AppList[i]->StatusCStr);
+				context->AppList[i]->StatusCStr = GetUpdateStatusString(appStatus, statusParam);
+				context->AppsStatusChangedCallback(context, updatedApp, context->AppsStatusChangedCallbackUserData);
+				break;
+			}
+		}
 	}
 }
 
@@ -149,7 +201,13 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 	try
 	{
 		GenericCallback(callback, "Initializing VRP");
-		appContext->VrpManager = new mloader::VRPManager(*appContext->Rclone, *appContext->zip7, cacheDir, downloadDir);
+
+		auto onAppStatusChanged = [appContext](const mloader::GameInfo& gameInfo, const AppStatus appStatus, const int statusParam)
+		{
+			OnGameInfoStatusChanged(appContext, gameInfo, appStatus, statusParam);
+		};
+
+		appContext->VrpManager = new mloader::VRPManager(*appContext->Rclone, *appContext->zip7, cacheDir, downloadDir, onAppStatusChanged);
 	}
 	catch(std::runtime_error& error)
 	{
@@ -189,14 +247,41 @@ void CreateLoaderContextAsync(CreateLoaderContextAsyncCompletedCallback complete
 	}).detach();
 }
 
-void DestroyLoaderContext(AppContext* handle)
+void DestroyLoaderContext(AppContext* context)
 {
-	if (handle != nullptr)
+	if (context->AppList)
 	{
-		delete handle->VrpManager;
-		delete handle->Rclone;
-		delete handle;
-		handle = nullptr;
+		const size_t numApps = context->VrpManager->GetGameList().size();
+		for (int i = 0; i < numApps; ++i)
+		{
+			// cleanup individual strings
+			free((char*)context->AppList[i]->GameName);
+			free((char*)context->AppList[i]->ReleaseName);
+			free((char*)context->AppList[i]->PackageName);
+			free((char*)context->AppList[i]->LastUpdated);
+			free((char*)context->AppList[i]->StatusCStr);
+
+			context->AppList[i]->GameName 	= NULL;
+			context->AppList[i]->ReleaseName = NULL;
+			context->AppList[i]->PackageName = NULL;
+			context->AppList[i]->LastUpdated = NULL;
+			context->AppList[i]->StatusCStr = NULL;
+
+			delete context->AppList[i];
+		}
+		delete[] context->AppList;
+	}
+
+	context->AdbDeviceListChangedCallback		= nullptr;
+	context->AppsStatusChangedCallback			= nullptr;
+	context->AppsStatusChangedCallbackUserData	= nullptr;
+
+	if (context != nullptr)
+	{
+		delete context->VrpManager;
+		delete context->Rclone;
+		delete context;
+		context = nullptr;
 	}
 	mloader::CleanupGlobalCurl();
 }
@@ -218,45 +303,44 @@ void RefreshMetadataAsync(RefreshMetadataAsyncCompletedCallback completedCallbac
 	}).detach();
 }
 
-void GetAppList(AppContext* context, App** app, int* num)
+App** GetAppList(AppContext* context, App** &app, int* num)
 {
-	const std::vector<mloader::GameInfo>& gameInfo = context->VrpManager->GetGameList();
-	size_t numGames = gameInfo.size();
-	*num = numGames;
-	if (numGames == 0)
+	if (context->AppList == nullptr)	// lazy load
 	{
-		return;
+		const std::map<mloader::GameInfo, AppStatus>& gameInfo = context->VrpManager->GetGameList();
+		*num = gameInfo.size();
+		context->AppList = new App*[*num];
+		int i = 0;
+		for (const auto& pair : gameInfo)
+		{
+			context->AppList[i] = new App();
+			context->AppList[i]->GameName 		= strdup(pair.first.GameName.c_str());
+			context->AppList[i]->ReleaseName 	= strdup(pair.first.ReleaseName.c_str());
+			context->AppList[i]->PackageName 	= strdup(pair.first.PackageName.c_str());
+			context->AppList[i]->VersionCode 	= pair.first.VersionCode;
+			context->AppList[i]->LastUpdated 	= strdup(pair.first.LastUpdated.c_str());
+			context->AppList[i]->SizeMB 		= pair.first.SizeMB;
+			context->AppList[i]->Downloads 		= pair.first.Downloads;
+			context->AppList[i]->Rating 		= pair.first.Rating;
+			context->AppList[i]->RatingCount 	= pair.first.RatingCount;
+			context->AppList[i]->Status 		= pair.second;
+			context->AppList[i]->AppStatusParam = -1;									// When downloading or extracting, progress is reported with this param, otherwise it defaults to -1
+			context->AppList[i]->StatusCStr = GetUpdateStatusString(context->AppList[i]->Status);
+
+			++i;
+		}
 	}
 
-	App* appData = new App[numGames];
-	for (int i = 0; i < numGames; ++i)
-	{
-		appData[i].GameName = gameInfo[i].GameName.c_str();
-		appData[i].ReleaseName = gameInfo[i].ReleaseName.c_str();
-		appData[i].PackageName = gameInfo[i].PackageName.c_str();
-		appData[i].VersionCode = gameInfo[i].VersionCode;
-		appData[i].LastUpdated = gameInfo[i].LastUpdated.c_str();
-		appData[i].SizeMB = gameInfo[i].SizeMB;
-		appData[i].Downloads = gameInfo[i].Downloads;
-		appData[i].Rating = gameInfo[i].Rating;
-		appData[i].RatingCount = gameInfo[i].RatingCount;
-	}
-
-	*app = appData;
-}
-
-void FreeAppList(App* app)
-{
-	delete[] app;
+	return context->AppList;
 }
 
 bool DownloadApp(AppContext* context, App* app)
 {
-	const std::vector<mloader::GameInfo>& gameInfo = context->VrpManager->GetGameList();
+	const std::map<mloader::GameInfo, AppStatus>& gameInfo = context->VrpManager->GetGameList();
 
-	auto it = std::find_if(gameInfo.cbegin(), gameInfo.cend(), [app](const mloader::GameInfo& game)
+	auto it = std::find_if(gameInfo.cbegin(), gameInfo.cend(), [app](const auto& pair)
 	{
-		return game.ReleaseName == app->ReleaseName;
+		return pair.first.ReleaseName == app->ReleaseName;
 	});
 
 	if (it == gameInfo.end())
@@ -264,9 +348,15 @@ bool DownloadApp(AppContext* context, App* app)
 		return false;
 	}
 
-	context->VrpManager->DownloadGame(*it);
-	
+	context->VrpManager->DownloadGame(it->first);
 	return true;
+}
+
+void DownloadAppAsync(AppContext* context, App* app)
+{
+	std::thread([=]() {
+		DownloadApp(context, app);
+	}).detach();
 }
 
 void GetDeviceList(AppContext* context, AdbDevice*& device, int* num)
@@ -299,4 +389,39 @@ void SetADBDeviceListChangedCallback(AppContext* context, ADBDeviceListChangedCa
 void ClearADBDeviceListChangedCallback(AppContext* context)
 {
 	context->AdbDeviceListChangedCallback = nullptr;
+}
+
+void SetAppStatusChangedCallback(AppContext* context, AppStatusChangedCallback callback, void* userData)
+{
+	context->AppsStatusChangedCallback = callback;
+	context->AppsStatusChangedCallbackUserData = userData;
+}
+
+void ClearAppStatusChangedCallback(AppContext* context)
+{
+	context->AppsStatusChangedCallback = nullptr;
+	context->AppsStatusChangedCallbackUserData = nullptr;
+}
+
+char* GetAppThumbImage(AppContext* context, App* app)
+{
+	const std::map<mloader::GameInfo, AppStatus>& gameInfo = context->VrpManager->GetGameList();
+
+	auto it = std::find_if(gameInfo.cbegin(), gameInfo.cend(), [app](const auto& pair)
+	{
+		return pair.first.ReleaseName == app->ReleaseName;
+	});
+
+	if (it == gameInfo.end())
+	{
+		return NULL;
+	}
+	
+	const std::string path = context->VrpManager->GetAppThumbImage(it->first);
+	if (path.empty())
+	{
+		return NULL;
+	}
+	char* cpath = strdup(path.c_str());
+	return cpath;
 }

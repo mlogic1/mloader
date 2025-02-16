@@ -94,7 +94,8 @@ namespace mloader
 		// unzip
 		FILE* fp;
 		char strbuffer[512];
-		snprintf(strbuffer, sizeof(strbuffer), "%s x -aoa -bsp1 -bso0 -o%s -p%s %s", m_7zToolPath.c_str(), destinationDir.c_str(), password.c_str(), archiveFile.c_str());
+		snprintf(strbuffer, sizeof(strbuffer), "%s x -aoa -bsp2 -o%s -p%s %s 2>&1", m_7zToolPath.c_str(), destinationDir.c_str(), password.c_str(), archiveFile.c_str());
+		//  -bso0
 		const std::string dbgStr = strbuffer;
 		fp = popen(strbuffer, "r");
 		if (fp == NULL)
@@ -102,21 +103,17 @@ namespace mloader
 			perror("popen");
 			return false;
 		}
-		
+
 		char path[1035];
 		// Read the output a line at a time - output it.
-		while (fgets(path, sizeof(path), fp) != NULL) {
-			// printf("%s", path);
-			// TODO: report this through a callback
-		}
+		while (fgets(path, sizeof(path), fp) != NULL) { }
 
 		int status = pclose(fp);
 		if (status == -1) {
 			perror("pclose");
 			return false;	// TODO: report this through a callback
 		} else {
-			printf("Command exited with status: %d\n", WEXITSTATUS(status));
-			// TODO: report this through a callback
+			// printf("7zz Command exited with status: %d\n", WEXITSTATUS(status));
 		}
 
 		return true;
