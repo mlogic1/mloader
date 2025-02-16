@@ -12,7 +12,7 @@ GameListMenu::~GameListMenu()
 {
 	if (m_appList != nullptr)
 	{
-		FreeAppList(m_appList);
+		// FreeAppList(m_appList);
 	}
 }
 
@@ -54,11 +54,11 @@ const StringList& GameListMenu::GetOptions()
 
 	if (m_appList != nullptr)
 	{
-		FreeAppList(m_appList);
+		// FreeAppList(m_appList);
 	}
 
 	int numApps = 0;
-	GetAppList(m_appContext, &m_appList, &numApps);
+	// GetAppList(m_appContext, &m_appList, &numApps);
 
 	for(int i = 0; i < numApps; ++i)
 	{
