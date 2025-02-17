@@ -4,6 +4,7 @@ general:
     - move /cli.cpp/h files to /cli/src
     - by default, do not build the cli tool. Set it behind a cmake variable
     - implement a download queue to avoid concurrent downloads
+    - implement reading notes
 
 rclone:
     - should have report progress and complete/fail callbacks
@@ -11,6 +12,7 @@ rclone:
 VRPManager:
     - load json to struct
     - move findFirstFileWithExtension to some utility
+    - delete downloaded cache files after (a successful) extraction
 
 Logging:
     - implement logging to file

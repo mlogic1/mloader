@@ -12,10 +12,9 @@ This sideloader is designed to run on Linux and MacOS and uses ROOKIE's public m
  - [License](#license)
  - [Disclaimer](#disclaimer)
 
-
 ## Notes
 
-This software is still early in development. There may be issues with using it.
+This application is still early in development. There may be bugs or issues while using it.
 
 ### Development status
 | OS      | Status            | Note   |
