@@ -1,6 +1,7 @@
 #include "VRPManager.h"
 #include "RClone.h"
 #include "7z.h"
+#include "Logger.h"
 #include "md5.h"
 #include <filesystem>
 #include "curl_global.h"
@@ -12,11 +13,12 @@
 
 namespace mloader
 {
-	VRPManager::VRPManager(const RClone& rclone, const Zip& zip, const fs::path& cacheDir, const fs::path& downloadDir, std::function<void(const GameInfo&, const AppStatus, const int)> gameStatusChangedCallback)
+	VRPManager::VRPManager(const RClone& rclone, const Zip& zip, const fs::path& cacheDir, const fs::path& downloadDir, Logger& logger, std::function<void(const GameInfo&, const AppStatus, const int)> gameStatusChangedCallback)
 	:	m_rClone(rclone),
 		m_zip(zip),
 		m_cacheDir(cacheDir),
 		m_downloadDir(downloadDir),
+		m_logger(logger),
 		m_gameStatusChangedCallback(gameStatusChangedCallback)
 	{
 		std::string error{""};
@@ -49,6 +51,7 @@ namespace mloader
 
 	bool VRPManager::RefreshMetadata(bool forceRedownload)
 	{
+		m_logger.LogInfo(LOG_NAME, "Refreshing metdata");
 		fs::path metaFile = m_cacheDir / "meta.7z";	
 		fs::path metaDir = m_cacheDir / "metadata";
 		fs::path gameListFile = metaDir / "VRP-GameList.txt";
@@ -140,6 +143,8 @@ namespace mloader
 			}
 			m_gameList.emplace(std::move(info), appStatus);
 		}
+		
+		m_logger.LogInfo(LOG_NAME, "Loaded " + std::to_string(m_gameList.size()) + " games from the meta file");
 		return true;
 	}
 
@@ -159,6 +164,7 @@ namespace mloader
 
 	void VRPManager::DownloadGame(const GameInfo& game)
 	{
+		m_logger.LogInfo(LOG_NAME, "Starting download: " + std::string(game.ReleaseName));
 		if (m_gameList[game] != AppStatus::NoInfo && m_gameList[game] != AppStatus::DownloadError)
 		{
 			return; // or throw
@@ -186,7 +192,9 @@ namespace mloader
 			if (zipFile.empty())
 			{
 				ChangeGameStatus(game, AppStatus::ExtractingError);
-				throw std::runtime_error("Unable to locate zip to extract " + game.ReleaseName);
+				std::string errMessage = "Unable to locate zip to extract " + std::string(game.ReleaseName);
+				m_logger.LogError(LOG_NAME, errMessage);
+				throw std::runtime_error(errMessage);
 			}
 			if (m_zip.Unzip7z(zipFile, m_downloadDir, m_password))
 			{

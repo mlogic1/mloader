@@ -60,7 +60,7 @@ namespace mloader
 			fp = popen(strbuffer, "r");
 			if (fp == NULL)
 			{
-				m_logger.LogInfo(LOG_NAME, "Unzipping Rclone failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
+				m_logger.LogError(LOG_NAME, "Unzipping Rclone failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				perror("popen");
 				return false;
 			}
@@ -75,7 +75,7 @@ namespace mloader
 			if (status == -1)
 			{
 				perror("pclose");
-				m_logger.LogInfo(LOG_NAME, "Unzipping Rclone failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
+				m_logger.LogError(LOG_NAME, "Unzipping Rclone failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				return false;
 			} 
 			else
@@ -102,7 +102,7 @@ namespace mloader
 		fp = popen(strbuffer, "r");
 		if (fp == NULL)
 		{
-			m_logger.LogInfo(LOG_NAME, "Sync file failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
+			m_logger.LogError(LOG_NAME, "Sync file failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("popen");
 			return false;
 		}
@@ -115,7 +115,7 @@ namespace mloader
 
 		int status = pclose(fp);
 		if (status == -1) {
-			m_logger.LogInfo(LOG_NAME, "Sync file failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
+			m_logger.LogError(LOG_NAME, "Sync file failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("pclose");
 			return false;
 		} 
@@ -143,7 +143,7 @@ namespace mloader
 		fp = popen(strbuffer, "r");
 		if (fp == NULL)
 		{
-			m_logger.LogInfo(LOG_NAME, "Downloading file failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
+			m_logger.LogError(LOG_NAME, "Downloading file failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("popen");
 			return false;
 		}
@@ -170,7 +170,7 @@ namespace mloader
 
 		int status = pclose(fp);
 		if (status == -1) {
-			m_logger.LogInfo(LOG_NAME, "Downloading file failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
+			m_logger.LogError(LOG_NAME, "Downloading file failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("pclose");
 			return false;
 		} 

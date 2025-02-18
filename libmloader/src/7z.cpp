@@ -107,7 +107,7 @@ namespace mloader
 		if (fp == NULL)
 		{
 			perror("popen");
-			m_logger.LogInfo(LOG_NAME, "Unzipping 7z failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
+			m_logger.LogError(LOG_NAME, "Unzipping archive failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			return false;
 		}
 
@@ -119,7 +119,7 @@ namespace mloader
 		if (status == -1)
 		{
 			perror("pclose");
-			m_logger.LogInfo(LOG_NAME, "Unzipping archive failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
+			m_logger.LogError(LOG_NAME, "Unzipping archive failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			return false;	// TODO: report this through a callback
 		}
 		else

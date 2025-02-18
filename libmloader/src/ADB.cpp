@@ -72,7 +72,7 @@ namespace mloader
 			fp = popen(buffer, "r");
 			if (fp == NULL)
 			{
-				m_logger.LogInfo(LOG_NAME, "Unzipping ADB failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
+				m_logger.LogError(LOG_NAME, "Unzipping ADB failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				perror("popen");
 				return false;
 			}
@@ -86,7 +86,7 @@ namespace mloader
 			int status = pclose(fp);
 			if (status == -1)
 			{
-				m_logger.LogInfo(LOG_NAME, "Unzipping ADB failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
+				m_logger.LogError(LOG_NAME, "Unzipping ADB failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				perror("pclose");
 				return false;
 			} 
@@ -116,7 +116,7 @@ namespace mloader
 		fp = popen(strbuffer, "r");
 		if (fp == NULL)
 		{
-			m_logger.LogInfo(LOG_NAME, "Starting ADB Server failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
+			m_logger.LogError(LOG_NAME, "Starting ADB Server failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("popen");
 		}
 		
@@ -129,7 +129,7 @@ namespace mloader
 		int status = pclose(fp);
 		if (status == -1)
 		{
-			m_logger.LogInfo(LOG_NAME, "Starting ADB Server failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
+			m_logger.LogError(LOG_NAME, "Starting ADB Server failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("pclose");
 		}
 		else
@@ -157,7 +157,7 @@ namespace mloader
 		fp = popen(strbuffer, "r");
 		if (fp == NULL)
 		{
-			m_logger.LogInfo(LOG_NAME, "Stopping ADB Server failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
+			m_logger.LogError(LOG_NAME, "Stopping ADB Server failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("popen");
 			// return false;
 		}
@@ -171,7 +171,7 @@ namespace mloader
 		int status = pclose(fp);
 		if (status == -1)
 		{
-			m_logger.LogInfo(LOG_NAME, "Stopping ADB Server failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
+			m_logger.LogError(LOG_NAME, "Stopping ADB Server failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("pclose");
 		}
 		else

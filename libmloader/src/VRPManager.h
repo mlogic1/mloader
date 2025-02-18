@@ -15,11 +15,12 @@ namespace mloader
 {
 	class RClone;
 	class Zip;
+	class Logger;
 
 	class VRPManager
 	{
 		public:
-			VRPManager(const RClone& rclone, const Zip& zip, const fs::path& cacheDir, const fs::path& downloadDir, std::function<void(const GameInfo&, const AppStatus, const int)> gameStatusChangedCallback = nullptr);
+			VRPManager(const RClone& rclone, const Zip& zip, const fs::path& cacheDir, const fs::path& downloadDir, Logger& logger, std::function<void(const GameInfo&, const AppStatus, const int)> gameStatusChangedCallback = nullptr);
 			~VRPManager();
 
 			bool RefreshMetadata(bool forceRedownload = false);
@@ -45,6 +46,9 @@ namespace mloader
 
 			std::string m_baseUri = "https://go.vrpyourself.online/";
 			std::string m_password = "gL59VfgPxoHR";
+
+			Logger& m_logger;
+			static constexpr const char* LOG_NAME = "VRPManager";
 	};
 }
 

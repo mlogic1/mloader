@@ -228,8 +228,7 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 			OnGameInfoStatusChanged(appContext, gameInfo, appStatus, statusParam);
 		};
 		
-		// TODO: add logger to VRPManager
-		appContext->VrpManager = new mloader::VRPManager(*appContext->Rclone, *appContext->Zip7, cacheDir, downloadDir, onAppStatusChanged);
+		appContext->VrpManager = new mloader::VRPManager(*appContext->Rclone, *appContext->Zip7, cacheDir, downloadDir, *appContext->Logger, onAppStatusChanged);
 	}
 	catch(std::runtime_error& error)
 	{
