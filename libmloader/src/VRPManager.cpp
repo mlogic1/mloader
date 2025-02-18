@@ -199,6 +199,15 @@ namespace mloader
 			if (m_zip.Unzip7z(zipFile, m_downloadDir, m_password))
 			{
 				ChangeGameStatus(game, AppStatus::Downloaded);
+				try
+				{
+					// cleanup if download was successful
+					fs::remove_all(zippedDirectory);
+				}
+				catch(fs::filesystem_error& error)
+				{
+					m_logger.LogError(LOG_NAME, "Unable to remove directory " + std::string(zippedDirectory) + " " + std::string(error.what()));
+				}
 			}
 			else
 			{
