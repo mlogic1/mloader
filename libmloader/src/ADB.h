@@ -13,10 +13,11 @@ namespace fs = std::filesystem;
 
 namespace mloader
 {
+	class Logger;
 	class ADB
 	{
 		public:
-			ADB(const std::string& cacheDir, std::function<void()> AdbDeviceListChangedCallback = nullptr);
+			ADB(const std::string& cacheDir, Logger& logger, std::function<void()> AdbDeviceListChangedCallback = nullptr);
 			~ADB();
 		
 			std::vector<AdbDevice> GetAdbDevices();
@@ -39,6 +40,9 @@ namespace mloader
 		
 			std::atomic_bool m_endBackgroundService{false};
 			std::atomic_bool m_backgroundServiceBusy{false};
+
+			Logger& m_logger;
+			static constexpr const char* LOG_NAME = "ADB";
 	};
 }
 

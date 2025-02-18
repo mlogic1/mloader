@@ -23,6 +23,11 @@
 #define KEY_RETURN 10
 #define MLOADER_VERSION 0.1
 
+void InitializationCallbackMessage(const char* message)
+{
+	std::cout << message << std::endl;
+}
+
 void set_terminal_mode() {
 	struct termios newt;
 	tcgetattr(STDIN_FILENO, &newt);
@@ -114,9 +119,8 @@ std::unordered_map<std::string, Menu*> SetupMenus(AppContext* context)
 int main(int argc, char* argv[])
 {
 	set_terminal_mode();
-	std::cout << "mloader" << std::endl;
 	
-	AppContext* context = CreateLoaderContext();
+	AppContext* context = CreateLoaderContext(InitializationCallbackMessage);
 	allMenus = SetupMenus(context);
 	ChangeMenu("MainMenu");
 

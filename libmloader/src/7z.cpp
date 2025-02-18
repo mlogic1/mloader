@@ -1,4 +1,5 @@
 #include "7z.h"
+#include "Logger.h"
 #include "curl_global.h"
 #include <filesystem>
 #include <exception>
@@ -7,16 +8,14 @@
 
 namespace mloader
 {
-	Zip::Zip(const std::string& cacheDir)
-		: m_cacheDir(cacheDir)
+	Zip::Zip(const std::string& cacheDir, Logger& logger)
+		: m_cacheDir(cacheDir),
+		  m_logger(logger)
 	{
 		CheckAndDownloadTool();
 	}
 
-	Zip::~Zip()
-	{
-
-	}
+	Zip::~Zip() { }
 
 	bool Zip::CheckAndDownloadTool()
 	{
@@ -47,7 +46,7 @@ namespace mloader
 		{
 			if (!fs::exists(zipToolPathZip))
 			{
-				// log downloading rclone
+				m_logger.LogInfo(LOG_NAME, "Downloading 7z");
 				if (!CurlDownloadFile(httpFile, zipToolPathZip))
 				{
 					throw std::runtime_error("Unable to download 7z");
@@ -63,6 +62,7 @@ namespace mloader
 			if (fp == NULL)
 			{
 				perror("popen");
+				m_logger.LogInfo(LOG_NAME, "Unzipping 7z failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				return false;
 			}
 			
@@ -73,12 +73,18 @@ namespace mloader
 			}
 
 			int status = pclose(fp);
-			if (status == -1) {
+			if (status == -1)
+			{
 				perror("pclose");
+				m_logger.LogInfo(LOG_NAME, "Unzipping 7z failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				return false;
 			} else {
-				printf("Command exited with status: %d\n", WEXITSTATUS(status));
+				// printf("Command exited with status: %d\n", WEXITSTATUS(status));
 			}
+		}
+		else
+		{
+			m_logger.LogInfo(LOG_NAME, "Found an existing 7Zip tool at " + std::string(m_7zToolPath));
 		}
 
 		return true;
@@ -86,6 +92,7 @@ namespace mloader
 
 	bool Zip::Unzip7z(const fs::path& archiveFile, const fs::path& destinationDir, const std::string& password) const
 	{
+		m_logger.LogInfo(LOG_NAME, "Extracting " + std::string(archiveFile));
 		if (!fs::exists(archiveFile))
 		{
 			return false;
@@ -95,12 +102,12 @@ namespace mloader
 		FILE* fp;
 		char strbuffer[512];
 		snprintf(strbuffer, sizeof(strbuffer), "%s x -aoa -bsp2 -o%s -p%s %s 2>&1", m_7zToolPath.c_str(), destinationDir.c_str(), password.c_str(), archiveFile.c_str());
-		//  -bso0
 		const std::string dbgStr = strbuffer;
 		fp = popen(strbuffer, "r");
 		if (fp == NULL)
 		{
 			perror("popen");
+			m_logger.LogInfo(LOG_NAME, "Unzipping 7z failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			return false;
 		}
 
@@ -109,11 +116,16 @@ namespace mloader
 		while (fgets(path, sizeof(path), fp) != NULL) { }
 
 		int status = pclose(fp);
-		if (status == -1) {
+		if (status == -1)
+		{
 			perror("pclose");
+			m_logger.LogInfo(LOG_NAME, "Unzipping archive failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			return false;	// TODO: report this through a callback
-		} else {
+		}
+		else
+		{
 			// printf("7zz Command exited with status: %d\n", WEXITSTATUS(status));
+			m_logger.LogInfo(LOG_NAME, "Extracting " + std::string(archiveFile) + " completed.");
 		}
 
 		return true;

@@ -8,10 +8,11 @@ namespace fs = std::filesystem;
 
 namespace mloader
 {
+	class Logger;
 	class Zip
 	{
 		public:
-			Zip(const std::string& cacheDir);
+			Zip(const std::string& cacheDir, Logger& logger);
 			~Zip();
 
 			bool Unzip7z(const fs::path& archiveFile, const fs::path& destinationDir, const std::string& password = "") const;
@@ -22,6 +23,9 @@ namespace mloader
 		private:
 			fs::path m_cacheDir;
 			fs::path m_7zToolPath;	// points to 7z executable
+
+			Logger& m_logger;
+			static constexpr const char* LOG_NAME = "Zip";
 	};
 }
 

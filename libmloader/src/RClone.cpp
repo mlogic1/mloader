@@ -1,4 +1,5 @@
 #include "RClone.h"
+#include "Logger.h"
 #include "curl_global.h"
 #include <exception>
 #include <filesystem>
@@ -8,8 +9,9 @@
 
 namespace mloader
 {
-	RClone::RClone(const std::string& cacheDir)
-		: m_cacheDir(cacheDir)
+	RClone::RClone(const std::string& cacheDir, Logger& logger)
+		: m_cacheDir(cacheDir),
+		  m_logger(logger)
 	{
 		CheckAndDownloadTool();
 	}
@@ -43,7 +45,7 @@ namespace mloader
 		{
 			if (!fs::exists(rcloneToolPathZip))
 			{
-				// log downloading rclone
+				m_logger.LogInfo(LOG_NAME, "Downloading RClone");
 				if (!CurlDownloadFile(httpFile, rcloneToolPathZip))
 				{
 					throw std::runtime_error("Unable to download RClone");
@@ -58,6 +60,7 @@ namespace mloader
 			fp = popen(strbuffer, "r");
 			if (fp == NULL)
 			{
+				m_logger.LogInfo(LOG_NAME, "Unzipping Rclone failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				perror("popen");
 				return false;
 			}
@@ -69,14 +72,20 @@ namespace mloader
 			}
 
 			int status = pclose(fp);
-			if (status == -1) {
+			if (status == -1)
+			{
 				perror("pclose");
+				m_logger.LogInfo(LOG_NAME, "Unzipping Rclone failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				return false;
 			} 
 			else
 			{
-				printf("Command exited with status: %d\n", WEXITSTATUS(status));
+				// printf("Command exited with status: %d\n", WEXITSTATUS(status));
 			}
+		}
+		else
+		{
+			m_logger.LogInfo(LOG_NAME, "Found an existing Rclone tool at " + std::string(m_rcloneToolPath));
 		}
 
 		return true;
@@ -84,6 +93,7 @@ namespace mloader
 
 	bool RClone::SyncFile(const std::string& baseUrl, const std::string& fileName, const fs::path& directory) const
 	{
+		m_logger.LogInfo(LOG_NAME, "Sync file " + fileName);
 		FILE* fp;
 		char strbuffer[512];
 
@@ -92,6 +102,7 @@ namespace mloader
 		fp = popen(strbuffer, "r");
 		if (fp == NULL)
 		{
+			m_logger.LogInfo(LOG_NAME, "Sync file failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("popen");
 			return false;
 		}
@@ -104,12 +115,14 @@ namespace mloader
 
 		int status = pclose(fp);
 		if (status == -1) {
+			m_logger.LogInfo(LOG_NAME, "Sync file failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("pclose");
 			return false;
 		} 
 		else
 		{
-			printf("Command exited with status: %d\n", WEXITSTATUS(status));
+			// printf("Command exited with status: %d\n", WEXITSTATUS(status));
+			m_logger.LogInfo(LOG_NAME, "Sync file " + fileName + " complete.");
 		}
 
 		return true;
@@ -117,6 +130,7 @@ namespace mloader
 	
 	bool RClone::CopyFile(const std::string& baseUrl, const std::string& fileId, const fs::path& directory, std::function<void(uint8_t)> progressCallback) const
 	{
+		m_logger.LogInfo(LOG_NAME, "Downloading file " + fileId);
 		FILE* fp;
 		char strbuffer[1024];
 
@@ -129,6 +143,7 @@ namespace mloader
 		fp = popen(strbuffer, "r");
 		if (fp == NULL)
 		{
+			m_logger.LogInfo(LOG_NAME, "Downloading file failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("popen");
 			return false;
 		}
@@ -155,6 +170,7 @@ namespace mloader
 
 		int status = pclose(fp);
 		if (status == -1) {
+			m_logger.LogInfo(LOG_NAME, "Downloading file failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("pclose");
 			return false;
 		} 
@@ -162,6 +178,7 @@ namespace mloader
 		{
 			// printf("Command exited with status: %d\n", WEXITSTATUS(status));
 			// TODO: report this through a callback
+			m_logger.LogInfo(LOG_NAME, "Download file " + fileId + " complete.");
 		}
 		return true;
 	}

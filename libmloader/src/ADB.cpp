@@ -1,4 +1,5 @@
 #include "ADB.h"
+#include "Logger.h"
 #include "curl_global.h"
 #include <algorithm>
 #include <atomic>
@@ -13,8 +14,9 @@
 
 namespace mloader
 {
-	ADB::ADB(const std::string& cacheDir, std::function<void()> AdbDeviceListChangedCallback)
+	ADB::ADB(const std::string& cacheDir, Logger& logger, std::function<void()> AdbDeviceListChangedCallback)
 		:	m_cacheDir(cacheDir),
+			m_logger(logger),
 			m_adbDeviceListChangedCallback(AdbDeviceListChangedCallback)
 	{
 		CheckAndDownloadTool();
@@ -55,7 +57,7 @@ namespace mloader
 		{
 			if (!fs::exists(adbToolPathZip))
 			{
-				// log downloading adb
+				m_logger.LogInfo(LOG_NAME, "Downloading ADB");
 				if (!CurlDownloadFile(httpFile, adbToolPathZip))
 				{
 					throw std::runtime_error("Unable to download ADB");
@@ -70,6 +72,7 @@ namespace mloader
 			fp = popen(buffer, "r");
 			if (fp == NULL)
 			{
+				m_logger.LogInfo(LOG_NAME, "Unzipping ADB failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				perror("popen");
 				return false;
 			}
@@ -81,7 +84,9 @@ namespace mloader
 			}
 
 			int status = pclose(fp);
-			if (status == -1) {
+			if (status == -1)
+			{
+				m_logger.LogInfo(LOG_NAME, "Unzipping ADB failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				perror("pclose");
 				return false;
 			} 
@@ -90,16 +95,19 @@ namespace mloader
 				// printf("Command exited with status: %d\n", WEXITSTATUS(status));
 			}
 		}
+		else
+		{
+			m_logger.LogInfo(LOG_NAME, "Found an existing ADB tool at " + std::string(m_adbToolPath));
+		}
 
 		return true;
 	}
 
 	void ADB::StartServer()
 	{
-		while(m_backgroundServiceBusy)
-		{
-			// wait for the background service to finish (just in case)
-		}
+		while(m_backgroundServiceBusy) { } // wait for the background service to finish (just in case)
+		
+		m_logger.LogInfo(LOG_NAME, "Starting ADB Server");
 		
 		FILE* fp;
 		char strbuffer[512];
@@ -108,24 +116,25 @@ namespace mloader
 		fp = popen(strbuffer, "r");
 		if (fp == NULL)
 		{
+			m_logger.LogInfo(LOG_NAME, "Starting ADB Server failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("popen");
-			// return false;
 		}
 		
 		char path[1035];
 		// Read the output a line at a time - output it.
 		while (fgets(path, sizeof(path), fp) != NULL) {
-			// printf("%s", path);
+			m_logger.LogInfo(LOG_NAME, path);
 		}
 
 		int status = pclose(fp);
-		if (status == -1) {
+		if (status == -1)
+		{
+			m_logger.LogInfo(LOG_NAME, "Starting ADB Server failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("pclose");
-			// return false;
 		}
 		else
 		{
-			// printf("Command exited with status: %d\n", WEXITSTATUS(status));
+			m_logger.LogInfo(LOG_NAME, "ADB Server started");
 		}
 	}
 	
@@ -139,6 +148,8 @@ namespace mloader
 	{
 		while(m_backgroundServiceBusy) { } // wait for the background service to finish
 		
+		m_logger.LogInfo(LOG_NAME, "Stopping ADB Server");
+		
 		FILE* fp;
 		char strbuffer[512];
 
@@ -146,6 +157,7 @@ namespace mloader
 		fp = popen(strbuffer, "r");
 		if (fp == NULL)
 		{
+			m_logger.LogInfo(LOG_NAME, "Stopping ADB Server failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("popen");
 			// return false;
 		}
@@ -153,17 +165,18 @@ namespace mloader
 		char path[1035];
 		// Read the output a line at a time - output it.
 		while (fgets(path, sizeof(path), fp) != NULL) {
-			// printf("%s", path);
+			m_logger.LogInfo(LOG_NAME, path);
 		}
 
 		int status = pclose(fp);
-		if (status == -1) {
+		if (status == -1)
+		{
+			m_logger.LogInfo(LOG_NAME, "Stopping ADB Server failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("pclose");
-			// return false;
 		}
 		else
 		{
-			// printf("Command exited with status: %d\n", WEXITSTATUS(status));
+			m_logger.LogInfo(LOG_NAME, "Stopped ADB Server");
 		}
 	}
 
@@ -207,6 +220,7 @@ namespace mloader
 				fp = popen(strbuffer, "r");
 				if (fp == NULL)
 				{
+					
 					perror("popen");
 					// return false;
 				}
@@ -271,9 +285,9 @@ namespace mloader
 					{
 						eDeviceStatus = DEVICE_STATUS_MAP.at(deviceStatus);
 					}
-					catch (std::out_of_range&)
+					catch (std::out_of_range& exception)
 					{
-						// TODO: log this
+						m_logger.LogError(LOG_NAME, "Unknown device status reported on device list: " + std::string(exception.what()));
 					}
 					
 					deviceList.push_back({
@@ -285,6 +299,7 @@ namespace mloader
 				
 				if (deviceList != m_devices)
 				{
+					m_logger.LogInfo(LOG_NAME, "Device change detected");
 					{
 						std::lock_guard<std::mutex> lock(m_devicesMutex);
 						for(int i = 0; i < m_devices.size(); ++i){ DestroyAdbDevice(m_devices[i]); }

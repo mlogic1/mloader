@@ -1,4 +1,5 @@
 #include <mloader/AppContext.h>
+#include "Logger.h"
 #include "VRPManager.h"
 #include "RClone.h"
 #include "ADB.h"
@@ -17,8 +18,9 @@ struct AppContext
 {
 	mloader::VRPManager*			VrpManager;
 	mloader::RClone*				Rclone;
-	mloader::Zip*					zip7;
+	mloader::Zip*					Zip7;
 	mloader::ADB*					Adb;
+	mloader::Logger*				Logger;
 
 	// App list
 	App** 							AppList = nullptr;
@@ -162,12 +164,28 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 
 	try
 	{
-		GenericCallback(callback, "Initializing RClone");
-		appContext->Rclone = new mloader::RClone(cacheDir);
+		appContext->Logger = new mloader::Logger(cacheDir / "mloader.log");
 	}
 	catch(std::runtime_error& error)
 	{
 		err_msg = error.what();
+		delete appContext;
+		return nullptr;
+	}
+	
+	appContext->Logger->LogInfo("Initialization", "Starting up");
+	appContext->Logger->LogInfo("Initialization", "Cache directory: " + std::string(cacheDir));
+	appContext->Logger->LogInfo("Initialization", "Download directory: " + std::string(downloadDir));
+	
+	try
+	{
+		GenericCallback(callback, "Initializing RClone");
+		appContext->Rclone = new mloader::RClone(cacheDir, *appContext->Logger);
+	}
+	catch(std::runtime_error& error)
+	{
+		err_msg = error.what();
+		delete appContext->Logger;
 		delete appContext;
 		return nullptr;
 	}
@@ -175,12 +193,13 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 	try
 	{
 		GenericCallback(callback, "Initializing 7-Zip");
-		appContext->zip7 = new mloader::Zip(cacheDir);
+		appContext->Zip7 = new mloader::Zip(cacheDir, *appContext->Logger);
 	}
 	catch(std::runtime_error& error)
 	{
 		err_msg = error.what();
 		delete appContext->Rclone;
+		delete appContext->Logger;
 		delete appContext;
 		return nullptr;
 	}
@@ -188,13 +207,14 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 	try
 	{
 		GenericCallback(callback, "Initializing ADB");
-		appContext->Adb = new mloader::ADB(cacheDir, std::bind(OnAdbDeviceListChangedEvent, appContext));
+		appContext->Adb = new mloader::ADB(cacheDir, *appContext->Logger, std::bind(OnAdbDeviceListChangedEvent, appContext));
 	}
 	catch(std::runtime_error& error)
 	{
 		err_msg = error.what();
 		delete appContext->Rclone;
-		delete appContext->zip7;
+		delete appContext->Zip7;
+		delete appContext->Logger;
 		delete appContext;
 		return nullptr;
 	}
@@ -207,15 +227,17 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 		{
 			OnGameInfoStatusChanged(appContext, gameInfo, appStatus, statusParam);
 		};
-
-		appContext->VrpManager = new mloader::VRPManager(*appContext->Rclone, *appContext->zip7, cacheDir, downloadDir, onAppStatusChanged);
+		
+		// TODO: add logger to VRPManager
+		appContext->VrpManager = new mloader::VRPManager(*appContext->Rclone, *appContext->Zip7, cacheDir, downloadDir, onAppStatusChanged);
 	}
 	catch(std::runtime_error& error)
 	{
 		err_msg = error.what();
 		delete appContext->Rclone;
-		delete appContext->zip7;
+		delete appContext->Zip7;
 		delete appContext->Adb;
+		delete appContext->Logger;
 		delete appContext;
 		return nullptr;
 	}
@@ -228,9 +250,10 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 	{
 		err_msg = error.what();
 		delete appContext->Rclone;
-		delete appContext->zip7;
+		delete appContext->Zip7;
 		delete appContext->Adb;
 		delete appContext->VrpManager;
+		delete appContext->Logger;
 		delete appContext;
 		return nullptr;
 	}
@@ -280,7 +303,10 @@ void DestroyLoaderContext(AppContext* context)
 	if (context != nullptr)
 	{
 		delete context->VrpManager;
+		delete context->Adb;
+		delete context->Zip7;
 		delete context->Rclone;
+		delete context->Logger;
 		delete context;
 		context = nullptr;
 	}
