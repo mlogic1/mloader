@@ -26,14 +26,15 @@ namespace mloader
 			bool RefreshMetadata(bool forceRedownload = false);
 
 			const std::map<GameInfo, AppStatus>& GetGameList() const;
+			void ChangeGameStatus(const GameInfo& gameInfo, AppStatus newStatus, int statusParam = -1);
 			void DownloadGame(const GameInfo& game);
 			std::string GetAppThumbImage(const GameInfo& game) const;
 			bool GameInstalled(const GameInfo& game) const;
+			std::vector<fs::path> GetGameFileList(const GameInfo& game) const;
 
 		private:
 			bool CheckVRPPublicCredentials();
 			bool DownloadMetadata();
-			void ChangeGameStatus(const GameInfo& gameInfo, AppStatus newStatus, int statusParam = -1);
 			
 		private:
 			const RClone& m_rClone;

@@ -3,6 +3,7 @@
 #include "curl_global.h"
 #include <filesystem>
 #include <exception>
+#include <cstring>
 #include <iostream>
 #include <fstream>
 

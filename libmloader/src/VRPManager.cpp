@@ -134,8 +134,6 @@ namespace mloader
 			std::getline(ss, item, ';');
 			info.RatingCount = std::stoi(item);
 
-			// const std::string gameHash = CalculateGameMD5Hash(info.ReleaseName);
-
 			AppStatus appStatus = AppStatus::NoInfo;
 			if (GameInstalled(info))
 			{
@@ -244,6 +242,60 @@ namespace mloader
 		const fs::path manifestFile = m_downloadDir / game.ReleaseName / "release.manifest";
 
 		return fs::exists(manifestFile);
+	}
+
+	std::vector<fs::path> VRPManager::GetGameFileList(const GameInfo& game) const
+	{
+		if (!GameInstalled(game))
+		{
+			return {};
+		}
+
+		std::vector<fs::path> files;
+
+		const fs::path gameDirectory = m_downloadDir / game.ReleaseName; 
+		const fs::path manifestFile = gameDirectory / "release.manifest";
+
+		std::ifstream file(manifestFile);
+		std::string line;
+
+		while(std::getline(file, line))
+		{
+			if (line.starts_with("#filelist"))
+			{
+				std::getline(file, line);
+				break;
+			}
+		}
+
+		while(std::getline(file, line))
+		{
+			std::stringstream ss(line);
+			std::string item;
+
+			std::getline(ss, item, ';');
+			if (item == "f")
+			{
+				std::getline(ss, item, ';');
+				fs::path file = gameDirectory / item;
+				if (fs::exists(file))
+				{
+					files.push_back(std::move(file));
+				}
+				else
+				{
+					std::string errMsg = "File " + file.string() + " listed in manifest but not found on disk.";
+					m_logger.LogError(LOG_NAME, errMsg);
+					throw std::runtime_error(errMsg);
+				}
+			}
+			else if (item.empty())
+			{
+				break;
+			}
+		}
+
+		return files;
 	}
 
 	bool VRPManager::CheckVRPPublicCredentials()

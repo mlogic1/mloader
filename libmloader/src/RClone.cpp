@@ -1,6 +1,7 @@
 #include "RClone.h"
 #include "Logger.h"
 #include "curl_global.h"
+#include <cstring>
 #include <exception>
 #include <filesystem>
 #include <iostream>

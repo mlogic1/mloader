@@ -4,7 +4,9 @@ general:
     - move /cli.cpp/h files to /cli/src
     - by default, do not build the cli tool. Set it behind a cmake variable
     - implement a download queue to avoid concurrent downloads
-    - implement reading notes
+    - implement utility functions:
+                            function to execute shell commands
+                            function to calculate md5
 
 rclone:
     - should have report progress and complete/fail callbacks
@@ -12,12 +14,14 @@ rclone:
 VRPManager:
     - load json to struct
     - move findFirstFileWithExtension to some utility
-    - delete downloaded cache files after (a successful) extraction
+    - implement reading notes
+    - decouple RClone from VRPManager and use the UpdateAppStatus
 
 Logging:
     - implement logging to file
 
 gtk/linux specific:
     - make devices on device list which aren't authorized red
+    - when last device is disconnected the device dropdown should revert back to placeholder "Select a device"
     - format Popularity column to 2 decimals
     - tile view
