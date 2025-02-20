@@ -24,12 +24,13 @@ struct AppContext
 
 	// App list
 	App** 							AppList = nullptr;
-	// TODO: make device list context owned as well
+	AdbDevice**						AdbDeviceList = nullptr;
 	
 	// callbacks
-	ADBDeviceListChangedCallback	AdbDeviceListChangedCallback		= nullptr;
-	AppStatusChangedCallback		AppsStatusChangedCallback			= nullptr;
-	void*							AppsStatusChangedCallbackUserData	= nullptr;
+	ADBDeviceListChangedCallback	AdbDeviceListChangedCallback			= nullptr;
+	void*							AdbDeviceListChangedCallbackUserData	= nullptr;
+	AppStatusChangedCallback		AppsStatusChangedCallback				= nullptr;
+	void*							AppsStatusChangedCallbackUserData		= nullptr;
 };
 
 static std::string DetermineCacheDir()
@@ -70,6 +71,27 @@ static inline void GenericCallback(CreateLoaderContextStatusCallback callback, c
 	}
 }
 
+static int RefreshAdbDeviceList(AppContext* context)
+{
+	if (context->AdbDeviceList)
+	{
+		delete[] context->AdbDeviceList;
+		context->AdbDeviceList = nullptr;
+	}
+
+	std::vector<AdbDevice*> adbDevices = context->Adb->GetAdbDevices();
+	int numDevices = static_cast<int>(adbDevices.size());
+	
+	context->AdbDeviceList = new AdbDevice*[numDevices];
+	
+	for(int i = 0; i < numDevices; ++i)
+	{
+		context->AdbDeviceList[i] = adbDevices[i];
+	}
+
+	return numDevices;
+}
+
 static char* GetUpdateStatusString(AppStatus appStatus, int statusParam = -1)
 {
 	static std::unordered_map<AppStatus, const char*> APP_STATUS_STR_MAP =
@@ -80,7 +102,9 @@ static char* GetUpdateStatusString(AppStatus appStatus, int statusParam = -1)
 		{ AppStatus::Extracting, 		"Extracting"		},
 		{ AppStatus::ExtractingError,	"Extracting Error"	},
 		{ AppStatus::Downloaded,		"Downloaded"		},
-		{ AppStatus::Installing,		"Installing"		}
+		{ AppStatus::Installing,		"Installing"		},
+		{ AppStatus::InstallingError,	"Installing Error"	},
+		{ AppStatus::Installed,			"Installed"			}
 	};
 
 	char* result = nullptr;
@@ -98,9 +122,11 @@ static char* GetUpdateStatusString(AppStatus appStatus, int statusParam = -1)
 
 void OnAdbDeviceListChangedEvent(AppContext* context)
 {
+	RefreshAdbDeviceList(context);
+
 	if (context->AdbDeviceListChangedCallback)
 	{
-		context->AdbDeviceListChangedCallback(context);
+		context->AdbDeviceListChangedCallback(context, context->AdbDeviceListChangedCallbackUserData);
 	}
 }
 
@@ -284,15 +310,21 @@ void DestroyLoaderContext(AppContext* context)
 			free((char*)context->AppList[i]->LastUpdated);
 			free((char*)context->AppList[i]->StatusCStr);
 
-			context->AppList[i]->GameName 	= NULL;
-			context->AppList[i]->ReleaseName = NULL;
-			context->AppList[i]->PackageName = NULL;
-			context->AppList[i]->LastUpdated = NULL;
-			context->AppList[i]->StatusCStr = NULL;
+			context->AppList[i]->GameName		= NULL;
+			context->AppList[i]->ReleaseName	= NULL;
+			context->AppList[i]->PackageName	= NULL;
+			context->AppList[i]->LastUpdated	= NULL;
+			context->AppList[i]->StatusCStr		= NULL;
 
 			delete context->AppList[i];
 		}
 		delete[] context->AppList;
+	}
+
+	if (context->AdbDeviceList)
+	{
+		delete[] context->AdbDeviceList;
+		context->AdbDeviceList = nullptr;
 	}
 
 	context->AdbDeviceListChangedCallback		= nullptr;
@@ -329,7 +361,7 @@ void RefreshMetadataAsync(RefreshMetadataAsyncCompletedCallback completedCallbac
 	}).detach();
 }
 
-App** GetAppList(AppContext* context, App** &app, int* num)
+App** GetAppList(AppContext* context, int* num)
 {
 	if (context->AppList == nullptr)	// lazy load
 	{
@@ -385,36 +417,73 @@ void DownloadAppAsync(AppContext* context, App* app)
 	}).detach();
 }
 
-void GetDeviceList(AppContext* context, AdbDevice*& device, int* num)
+bool MLoaderInstallApp(AppContext* context, App* app, AdbDevice* device)
 {
-	std::vector<AdbDevice> adbDevices = context->Adb->GetAdbDevices();
-	*num = static_cast<int>(adbDevices.size());
-	device = new AdbDevice[*num];
+	const std::map<mloader::GameInfo, AppStatus>& gameInfo = context->VrpManager->GetGameList();
+
+	auto it = std::find_if(gameInfo.cbegin(), gameInfo.cend(), [app](const auto& pair)
+	{
+		return pair.first.ReleaseName == app->ReleaseName;
+	});
+
+	if (it == gameInfo.end())
+	{
+		return false;
+	}
+
+	if (device->DeviceStatus != AdbDeviceStatus::OK)
+	{
+		err_msg = "Device not authorized";
+		return false;
+	}
+
+	try
+	{
+		context->VrpManager->UpdateGameStatus(it->first, AppStatus::Installing);
+		std::vector<fs::path> fileList = context->VrpManager->GetGameFileList(it->first);
+		context->Adb->InstallFilesToDevice(it->first.PackageName, fileList, *device);
+		context->VrpManager->UpdateGameStatus(it->first, AppStatus::Installed);
+	}
+	catch(std::runtime_error& err)
+	{
+		context->VrpManager->UpdateGameStatus(it->first, AppStatus::InstallingError);
+		err_msg = err.what();
+		return false;
+	}
+
+	return true;
+}
+
+void MLoaderInstallAppAsync(AppContext* context, App* app, AdbDevice* device)
+{
+	std::thread([=]() {
+		MLoaderInstallApp(context, app, device);
+	}).detach();
+}
+
+AdbDevice** GetDeviceList(AppContext* context, int* num)
+{
+	if (context->AdbDeviceList)
+	{
+		*num = context->Adb->GetAdbDevices().size();
+		return context->AdbDeviceList;
+	}
 	
-	for(int i = 0; i < *num; ++i)
-	{
-		device[i] = *DuplicateAdbDevice(&adbDevices[i]);
-	}
+	*num = RefreshAdbDeviceList(context);
+
+	return context->AdbDeviceList;
 }
 
-void FreeDeviceList(AdbDevice* device, int* num)
-{
-	for (int i = 0; i < *num ; ++i)
-	{
-		DestroyAdbDevice(device[i]);
-		delete &device[i];
-		device = nullptr;
-	}
-}
-
-void SetADBDeviceListChangedCallback(AppContext* context, ADBDeviceListChangedCallback callback)
+void SetADBDeviceListChangedCallback(AppContext* context, ADBDeviceListChangedCallback callback, void* userData)
 {
 	context->AdbDeviceListChangedCallback = callback;
+	context->AdbDeviceListChangedCallbackUserData = userData;
 }
 
 void ClearADBDeviceListChangedCallback(AppContext* context)
 {
 	context->AdbDeviceListChangedCallback = nullptr;
+	context->AdbDeviceListChangedCallbackUserData = nullptr;
 }
 
 void SetAppStatusChangedCallback(AppContext* context, AppStatusChangedCallback callback, void* userData)

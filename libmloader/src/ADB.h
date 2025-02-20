@@ -20,7 +20,8 @@ namespace mloader
 			ADB(const std::string& cacheDir, Logger& logger, std::function<void()> AdbDeviceListChangedCallback = nullptr);
 			~ADB();
 		
-			std::vector<AdbDevice> GetAdbDevices();
+			std::vector<AdbDevice*> GetAdbDevices();
+			void InstallFilesToDevice(const std::string& packageName, const std::vector<fs::path>& fileList, const AdbDevice& device) const;
 		
 		private:
 			bool CheckAndDownloadTool();
@@ -28,6 +29,9 @@ namespace mloader
 			void ResetServer();
 			void KillServer();
 			void StartBackgroundDeviceService();
+
+			bool InstallAPK(const fs::path& file, const char* serial) const;
+			bool InstallOBB(const std::string& packageName, const fs::path& file, const char* serial) const;
 
 		private:
 			fs::path m_cacheDir;

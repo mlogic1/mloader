@@ -1,5 +1,7 @@
 #include "MainWindow.h"
+#include "GtkGeneric.h"
 #include <functional>
+#include <map>
 #include <mloader/AppContext.h>
 #include <mloader/App.h>
 
@@ -42,11 +44,24 @@ static void button_download_clicked(GtkWidget* widget, gpointer data)
 	mainWindow->OnDownloadButtonClicked();
 }
 
+static void button_install_clicked(GtkWidget* widget, gpointer data)
+{
+	MainWindow* mainWindow = static_cast<MainWindow*>(data);
+	mainWindow->OnInstallButtonClicked();
+}
+
 static gboolean app_changed_callback_event(gpointer data)
 {
 	std::pair<MainWindow*, App*>* params = static_cast<std::pair<MainWindow*, App*>*>(data);
 	params->first->OnAppStatusChanged(params->second);
 	delete params;
+	return false;
+}
+
+static gboolean device_list_changed_callback_event(gpointer data)
+{
+	MainWindow* mainWindow = static_cast<MainWindow*>(data);
+	mainWindow->OnAdbDeviceListChanged();
 	return false;
 }
 
@@ -60,11 +75,7 @@ MainWindow::MainWindow(AppContext* appContext)
 
 MainWindow::~MainWindow()
 {
-	if (m_adbDeviceList != nullptr)
-	{
-		FreeDeviceList(m_adbDeviceList, &m_numAdbDevices);
-		m_adbDeviceList = nullptr;
-	}
+	m_adbDeviceList = nullptr;
 
 	if (m_window)
 	{
@@ -147,7 +158,9 @@ void MainWindow::InitializeLayout()
 	g_signal_connect(m_mainDeviceListComboBox, "changed", G_CALLBACK(devicelist_device_changes), this);
 	g_signal_connect(m_mainAppTree, "cursor-changed", G_CALLBACK(applist_row_selected), this);
 	g_signal_connect(m_downloadBtn, "clicked", G_CALLBACK(button_download_clicked), this);
+	g_signal_connect(m_installBtn, "clicked", G_CALLBACK(button_install_clicked), this);
 
+	SetupMenuBarEvents();
 
 	gtk_builder_connect_signals(m_builder, NULL);
 
@@ -166,6 +179,20 @@ void MainWindow::SetupCallbackEvents()
 		std::pair<MainWindow*, App*>* params = new std::pair<MainWindow*, App*>(static_cast<MainWindow*>(usrdata), app);
 		g_idle_add(app_changed_callback_event, params);
 	}, this);
+
+	// Important: ADB device changes can be called from a background thread. It's important to use g_idle_add to do any UI updates from the main thread
+	SetADBDeviceListChangedCallback(m_appContext, [](AppContext* context, void* usrData)
+	{
+		g_idle_add(device_list_changed_callback_event, usrData);
+	}, this);
+}
+
+void MainWindow::SetupMenuBarEvents()
+{
+	GtkMenuItem* menuItem;
+
+	menuItem = GTK_MENU_ITEM(gtk_builder_get_object(m_builder, "menubar_btn_preferences"));
+	// continue implementation of menu bar callbacks;
 }
 
 void MainWindow::RefreshAppList()
@@ -175,7 +202,7 @@ void MainWindow::RefreshAppList()
 
 	m_selectedApp = nullptr;
 
-	m_appList = GetAppList(m_appContext, m_appList, &m_numApps);
+	m_appList = GetAppList(m_appContext, &m_numApps);
 	GtkTreeIter iter;
 
 	for(int i = 0; i < m_numApps; ++i)
@@ -197,26 +224,48 @@ void MainWindow::RefreshAppList()
 
 void MainWindow::RefreshDeviceList()
 {
+	m_selectedAdbDevice = nullptr;
 	gtk_list_store_clear(m_mainDeviceListStore);
-	if (m_adbDeviceList != nullptr)
-	{
-		FreeDeviceList(m_adbDeviceList, &m_numAdbDevices);
-		m_adbDeviceList = nullptr;
-	}
 
-	GetDeviceList(m_appContext, m_adbDeviceList, &m_numAdbDevices);
+	m_adbDeviceList = GetDeviceList(m_appContext, &m_numAdbDevices);
 
 	GtkTreeIter iter;
 	for(int i = 0; i < m_numAdbDevices; ++i)
 	{
 		gtk_list_store_append(m_mainDeviceListStore, &iter);
-		gtk_list_store_set(m_mainDeviceListStore, &iter, 0, m_adbDeviceList[i].DeviceId, -1);
+
+		std::string deviceString = m_adbDeviceList[i]->DeviceId;
+		if (strlen(m_adbDeviceList[i]->Model) > 0)
+		{
+			deviceString = m_adbDeviceList[i]->Model + std::string(" - ") + deviceString;
+		}
+
+		if (m_adbDeviceList[i]->DeviceStatus != AdbDeviceStatus::OK)
+		{
+			static const std::map<AdbDeviceStatus, std::string> DEVICE_STATUS_MAP =
+			{
+				{ AdbDeviceStatus::NoPermissions, "No Permissions" 	},
+				{ AdbDeviceStatus::Offline, "Offline" 				},
+				{ AdbDeviceStatus::UnAuthorized, "Unauthorized"		},
+				{ AdbDeviceStatus::Unknown, "Unknown" 				}
+			};
+
+			deviceString += "\t" + DEVICE_STATUS_MAP.at(m_adbDeviceList[i]->DeviceStatus);
+		}
+		
+		gtk_list_store_set(m_mainDeviceListStore, &iter, 0, deviceString.c_str(), -1);
+		
 	}
+}
+
+void MainWindow::OnAdbDeviceListChanged()
+{
+	gtk_combo_box_set_active(m_mainDeviceListComboBox, -1);
+	RefreshDeviceList();
 }
 
 void MainWindow::OnAdbDeviceSelectionChanged()
 {
-	// m_mainDeviceListStore
 	gint index = gtk_combo_box_get_active(m_mainDeviceListComboBox);
 	if (index == -1)
 	{
@@ -224,7 +273,7 @@ void MainWindow::OnAdbDeviceSelectionChanged()
 	}
 	else
 	{
-		m_selectedAdbDevice = &m_adbDeviceList[index];
+		m_selectedAdbDevice = m_adbDeviceList[index];
 	}
 	RefreshInstallDownloadButtons();
 }
@@ -301,13 +350,25 @@ void MainWindow::RefreshInstallDownloadButtons()
 	}
 
 	gtk_widget_set_sensitive(GTK_WIDGET(m_downloadBtn), m_selectedApp->Status == AppStatus::NoInfo);
+	gtk_widget_set_sensitive(GTK_WIDGET(m_installBtn), m_selectedApp->Status == AppStatus::Downloaded && m_selectedAdbDevice != nullptr && m_selectedAdbDevice->DeviceStatus == AdbDeviceStatus::OK);
 }
 
 void MainWindow::OnDownloadButtonClicked()
 {
 	if (!m_selectedApp) { return; } // This shouldn't occur, but just in case
 
+	gtk_widget_set_sensitive(GTK_WIDGET(m_downloadBtn), false);
 	DownloadAppAsync(m_appContext, m_selectedApp);
+}
+
+void MainWindow::OnInstallButtonClicked()
+{
+	if (!m_selectedApp) { return; } // This shouldn't occur, but just in case
+
+	ShowGenericMessageDialog(GTK_WINDOW(m_window), "Install something something");
+
+	// TODO: Begin installation
+	MLoaderInstallAppAsync(m_appContext, m_selectedApp, m_selectedAdbDevice);
 }
 
 void MainWindow::OnAppStatusChanged(App* app)
@@ -340,6 +401,8 @@ void MainWindow::OnAppStatusChanged(App* app)
 		gtk_tree_model_row_changed(GTK_TREE_MODEL(m_mainAppTreeListStore), path, &iter);
 		gtk_tree_path_free(path);
 	}
+
+	RefreshInstallDownloadButtons();
 }
 
 void MainWindow::ClearPixBuffer()

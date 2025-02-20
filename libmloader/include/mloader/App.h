@@ -10,6 +10,7 @@ enum AppStatus
 	ExtractingError,
 	Downloaded,
 	Installing,
+	InstallingError,
 	Installed
 };
 

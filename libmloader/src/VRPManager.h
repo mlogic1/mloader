@@ -26,7 +26,7 @@ namespace mloader
 			bool RefreshMetadata(bool forceRedownload = false);
 
 			const std::map<GameInfo, AppStatus>& GetGameList() const;
-			void ChangeGameStatus(const GameInfo& gameInfo, AppStatus newStatus, int statusParam = -1);
+			void UpdateGameStatus(const GameInfo& gameInfo, AppStatus newStatus, int statusParam = -1);
 			void DownloadGame(const GameInfo& game);
 			std::string GetAppThumbImage(const GameInfo& game) const;
 			bool GameInstalled(const GameInfo& game) const;

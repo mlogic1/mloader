@@ -8,6 +8,7 @@
 #include <curl/curl.h>
 #include <exception>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
 
@@ -40,7 +41,7 @@ namespace mloader
 		return m_rClone.SyncFile(m_baseUri, "meta.7z", m_cacheDir);
 	}
 
-	void VRPManager::ChangeGameStatus(const GameInfo& gameInfo, AppStatus newStatus, int statusParam)
+	void VRPManager::UpdateGameStatus(const GameInfo& gameInfo, AppStatus newStatus, int statusParam)
 	{
 		m_gameList[gameInfo] = newStatus;
 		if (m_gameStatusChangedCallback)
@@ -168,35 +169,35 @@ namespace mloader
 			return; // or throw
 		}
 
-		ChangeGameStatus(game, AppStatus::Downloading, 0);
+		UpdateGameStatus(game, AppStatus::Downloading, 0);
 
 		// Download progress callback
 		auto downloadProgressCallbackFunc = [this, game](uint8_t progress) -> void
 		{
 			if (this->m_gameStatusChangedCallback)
 			{
-				ChangeGameStatus(game, AppStatus::Downloading, static_cast<int>(progress));
+				UpdateGameStatus(game, AppStatus::Downloading, static_cast<int>(progress));
 			}
 		};
 
 		const std::string gameHash = CalculateGameMD5Hash(game.ReleaseName);
 		if (m_rClone.CopyFile(m_baseUri, gameHash, m_cacheDir, downloadProgressCallbackFunc))
 		{
-			ChangeGameStatus(game, AppStatus::Extracting);
+			UpdateGameStatus(game, AppStatus::Extracting);
 			// find the first .7z file in the temp download dir
 			fs::path zippedDirectory = m_cacheDir / fs::path(gameHash);
 			fs::path zipFile = findFirstFileWithExtension(zippedDirectory, ".001");
 
 			if (zipFile.empty())
 			{
-				ChangeGameStatus(game, AppStatus::ExtractingError);
+				UpdateGameStatus(game, AppStatus::ExtractingError);
 				std::string errMessage = "Unable to locate zip to extract " + std::string(game.ReleaseName);
 				m_logger.LogError(LOG_NAME, errMessage);
 				throw std::runtime_error(errMessage);
 			}
 			if (m_zip.Unzip7z(zipFile, m_downloadDir, m_password))
 			{
-				ChangeGameStatus(game, AppStatus::Downloaded);
+				UpdateGameStatus(game, AppStatus::Downloaded);
 				try
 				{
 					// cleanup if download was successful
@@ -209,12 +210,12 @@ namespace mloader
 			}
 			else
 			{
-				ChangeGameStatus(game, AppStatus::ExtractingError);
+				UpdateGameStatus(game, AppStatus::ExtractingError);
 			}
 		}
 		else
 		{
-			ChangeGameStatus(game, AppStatus::DownloadError);
+			UpdateGameStatus(game, AppStatus::DownloadError);
 		}
 	}
 
@@ -248,50 +249,35 @@ namespace mloader
 	{
 		if (!GameInstalled(game))
 		{
-			return {};
+			throw std::runtime_error("Unable to fetch manifest file for " + game.PackageName);
 		}
 
 		std::vector<fs::path> files;
 
-		const fs::path gameDirectory = m_downloadDir / game.ReleaseName; 
-		const fs::path manifestFile = gameDirectory / "release.manifest";
+		const fs::path gameDirectory = m_downloadDir / game.ReleaseName;
+		const fs::path obbDirectory = gameDirectory / game.PackageName;
 
-		std::ifstream file(manifestFile);
-		std::string line;
-
-		while(std::getline(file, line))
+		if (!fs::exists(gameDirectory))
 		{
-			if (line.starts_with("#filelist"))
+			throw std::runtime_error("Directory " + gameDirectory.string() + " does not exist");
+		}
+
+		for (const auto& entry : fs::directory_iterator(gameDirectory))
+		{
+			if (entry.is_regular_file() && entry.path().extension() == ".apk")
 			{
-				std::getline(file, line);
-				break;
+				files.push_back(entry.path());
 			}
 		}
 
-		while(std::getline(file, line))
+		if (fs::exists(obbDirectory))
 		{
-			std::stringstream ss(line);
-			std::string item;
-
-			std::getline(ss, item, ';');
-			if (item == "f")
+			for (const auto& entry : fs::directory_iterator(obbDirectory))
 			{
-				std::getline(ss, item, ';');
-				fs::path file = gameDirectory / item;
-				if (fs::exists(file))
+				if (entry.is_regular_file() && entry.path().extension() == ".obb")
 				{
-					files.push_back(std::move(file));
+					files.push_back(entry.path());
 				}
-				else
-				{
-					std::string errMsg = "File " + file.string() + " listed in manifest but not found on disk.";
-					m_logger.LogError(LOG_NAME, errMsg);
-					throw std::runtime_error(errMsg);
-				}
-			}
-			else if (item.empty())
-			{
-				break;
 			}
 		}
 

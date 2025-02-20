@@ -8,6 +8,8 @@ general:
                             function to execute shell commands
                             function to calculate md5
 
+    - better handling of installing status, it has to be per device, implement some refreshing system or something when changing selected device
+
 rclone:
     - should have report progress and complete/fail callbacks
 
@@ -17,11 +19,10 @@ VRPManager:
     - implement reading notes
     - decouple RClone from VRPManager and use the UpdateAppStatus
 
-Logging:
-    - implement logging to file
-
 gtk/linux specific:
     - make devices on device list which aren't authorized red
     - when last device is disconnected the device dropdown should revert back to placeholder "Select a device"
+                    , also if no device is selected, and a new device is connected, automatically select it
     - format Popularity column to 2 decimals
     - tile view
+    - allow InstallingFailed state to retry installation

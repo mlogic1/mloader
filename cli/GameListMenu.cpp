@@ -54,7 +54,7 @@ const StringList& GameListMenu::GetOptions()
 
 	if (m_appList == nullptr)
 	{
-		m_appList = GetAppList(m_appContext, m_appList, &m_numApps);
+		m_appList = GetAppList(m_appContext, &m_numApps);
 	}
 
 	for(int i = 0; i < m_numApps; ++i)

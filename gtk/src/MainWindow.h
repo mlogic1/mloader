@@ -17,14 +17,17 @@ class MainWindow
 		// Events
 		void OnAppFilterChanged();
 		gboolean OnFilterFunction(GtkTreeModel *model, GtkTreeIter *iter);
+		void OnAdbDeviceListChanged();
 		void OnAdbDeviceSelectionChanged();
 		void OnAppSelectionChanged();
 		void OnDownloadButtonClicked();
+		void OnInstallButtonClicked();
 		void OnAppStatusChanged(App* app);
 
 	private:
 		void InitializeLayout();
 		void SetupCallbackEvents();
+		void SetupMenuBarEvents();
 		void RefreshAppList();
 		void RefreshDeviceList();
 		void RefreshInstallDownloadButtons();
@@ -37,8 +40,8 @@ class MainWindow
 		App** m_appList = nullptr;
 		int m_numApps = 0;
 		App* m_selectedApp = nullptr;
-		AdbDevice* m_adbDeviceList;
-		AdbDevice* m_selectedAdbDevice;
+		AdbDevice** m_adbDeviceList = nullptr;
+		AdbDevice* m_selectedAdbDevice = nullptr;
 		int m_numAdbDevices = 0;
 
 		GtkBuilder* m_builder;

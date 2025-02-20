@@ -1,5 +1,6 @@
 #include "ADB.h"
 #include "Logger.h"
+#include "Utility.h"
 #include "curl_global.h"
 #include <algorithm>
 #include <atomic>
@@ -27,14 +28,55 @@ namespace mloader
 
 	ADB::~ADB()
 	{
-		KillServer();
 		m_endBackgroundService = true;
+		KillServer();
 	}
 
-	std::vector<AdbDevice> ADB::GetAdbDevices()
+	std::vector<AdbDevice*> ADB::GetAdbDevices()
 	{
 		std::lock_guard<std::mutex> lock(m_devicesMutex);
-		return m_devices;
+		std::vector<AdbDevice*> devices;
+
+		for (AdbDevice& device : m_devices)
+		{
+			devices.push_back(&device);
+		}
+
+		return devices;
+	}
+
+	void ADB::InstallFilesToDevice(const std::string& packageName, const std::vector<fs::path>& fileList, const AdbDevice& device) const
+	{
+		if (std::count_if(fileList.cbegin(), fileList.cend(), [](const fs::path& path)
+		{
+			return path.extension() == ".obb";
+		}) > 0)
+		{
+			// If file list contains .obb files, clear and recreate obb directory
+			const fs::path obbDir = fs::path("/sdcard/Android/obb/") / packageName;
+			ExecShell(m_adbToolPath.c_str(), "-s", device.DeviceId, "shell", "rm", "-rf", obbDir);
+			ExecShell(m_adbToolPath.c_str(), "-s", device.DeviceId, "shell", "mkdir", obbDir);	// mkdir is probably not needed but it doesn't hurt (adb push would create the directory regardless)
+		}
+		
+		for (const fs::path& file : fileList)
+		{
+			const std::string extension = file.extension();
+			const std::string fileName = file.filename();
+
+			if (extension == ".apk")
+			{
+				InstallAPK(file, device.DeviceId);
+			}
+			else if (extension == ".obb")
+			{
+				InstallOBB(packageName, file, device.DeviceId);
+			}
+			else
+			{
+				std::string errMsg = "Unhandled file extension for file " + fileName + ". Installation will continue, but the application might not work";
+				m_logger.LogError(LOG_NAME, errMsg);
+			}
+		}
 	}
 
 	bool ADB::CheckAndDownloadTool()
@@ -128,7 +170,7 @@ namespace mloader
 		}
 
 		int status = pclose(fp);
-		if (status == -1)
+		if (status != EXIT_SUCCESS)
 		{
 			m_logger.LogError(LOG_NAME, "Starting ADB Server failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("pclose");
@@ -215,18 +257,16 @@ namespace mloader
 				m_backgroundServiceBusy = true;
 				FILE* fp;
 				char strbuffer[512];
-				constexpr const char* searchHeader = "List of devices attached";
 
 				snprintf(strbuffer, sizeof(strbuffer), "%s devices", m_adbToolPath.c_str());
 				fp = popen(strbuffer, "r");
 				if (fp == NULL)
 				{
-					
 					perror("popen");
 					// return false;
 				}
 				
-				// printf("Refreshing device list\n"); // TODO: log this instead of print
+				// m_logger.LogInfo(LOG_NAME, Refreshing device list);
 				
 				char path[1035];
 				std::vector<std::string> adbDevices;	// list from shell
@@ -234,23 +274,28 @@ namespace mloader
 				while (fgets(path, sizeof(path), fp) != NULL) {
 					adbDevices.push_back(path);
 				}
-				
+
+				int status = pclose(fp);
+				if (status != EXIT_SUCCESS) {
+					m_logger.LogError(LOG_NAME, "ADB Exited with status " + std::to_string(status) + ". Error number " + std::to_string(errno) + ". " + strerror(errno));
+					perror("pclose");
+				}
+				else
+				{
+					// printf("Command exited with status: %d\n", WEXITSTATUS(status));
+				}
+
+				if (adbDevices.empty())
+				{
+					continue;
+				}
+
 				adbDevices.erase(adbDevices.begin());	// remove header line
 				
 				adbDevices.erase(std::find_if(adbDevices.begin(), adbDevices.end(), [](const std::string& deviceLine)
 				{
 					return deviceLine.empty() || deviceLine == "\n";
 				}));
-
-				int status = pclose(fp);
-				if (status == -1) {
-					perror("pclose");
-					// return false;
-				}
-				else
-				{
-					// printf("Command exited with status: %d\n", WEXITSTATUS(status));
-				}
 				
 				decltype(m_devices) deviceList;
 				
@@ -273,13 +318,19 @@ namespace mloader
 					{
 						deviceModel = GetDeviceModel(m_adbToolPath, deviceId);
 					}
+
+					// "no permissions" status might contain trailing text, trim it
+					if (deviceStatus.starts_with("no permissions"))
+					{
+						deviceStatus = "no permissions";
+					}
 					
 					static const std::unordered_map<std::string, AdbDeviceStatus> DEVICE_STATUS_MAP =
 					{
-						{ "device", AdbDeviceStatus::OK },
-						{ "unauthorized", AdbDeviceStatus::UnAuthorized },
-						{ "offline", AdbDeviceStatus::Offline },
-						{ "no permissions", AdbDeviceStatus::NoPermissions }
+						{ "device", AdbDeviceStatus::OK 					},
+						{ "unauthorized", AdbDeviceStatus::UnAuthorized		},
+						{ "offline", AdbDeviceStatus::Offline 				},
+						{ "no permissions", AdbDeviceStatus::NoPermissions	}
 					};
 					
 					try
@@ -288,7 +339,7 @@ namespace mloader
 					}
 					catch (std::out_of_range& exception)
 					{
-						m_logger.LogError(LOG_NAME, "Unknown device status reported on device list: " + std::string(exception.what()));
+						m_logger.LogError(LOG_NAME, "Unknown device status reported on device list: " + deviceStatus + ". " + std::string(exception.what()));
 					}
 					
 					deviceList.push_back({
@@ -315,7 +366,21 @@ namespace mloader
 				
 				m_backgroundServiceBusy = false;
 			}
-
 		}).detach();
+	}
+
+	bool ADB::InstallAPK(const fs::path& file, const char* serial) const
+	{
+		m_logger.LogInfo(LOG_NAME, "Installing APK " + file.string() + " to device " + serial);
+		std::string escapedAPK = "\"" + file.string() + "\"";
+		return ExecShell(m_adbToolPath.c_str(), "-s", serial, "install", "-r", escapedAPK.c_str()) == 0;
+	}
+
+	bool ADB::InstallOBB(const std::string& packageName, const fs::path& file, const char* serial) const
+	{
+		m_logger.LogInfo(LOG_NAME, "Installing OBB " + file.string() + " to device " + serial);
+		fs::path targetLocation = fs::path("/sdcard/Android/obb/") / packageName / file.filename();
+		std::string escapedOBB = "\"" + file.string() + "\"";
+		return ExecShell(m_adbToolPath.c_str(), "-s", serial, "push", escapedOBB.c_str(), targetLocation) == 0;
 	}
 }

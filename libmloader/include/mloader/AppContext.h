@@ -10,7 +10,7 @@ typedef struct AppContext AppContext;
 typedef void (* CreateLoaderContextStatusCallback)(const char*);
 typedef void (* CreateLoaderContextAsyncCompletedCallback)(AppContext*);
 typedef void (* RefreshMetadataAsyncCompletedCallback)(AppContext*);
-typedef void (* ADBDeviceListChangedCallback)(AppContext*);
+typedef void (* ADBDeviceListChangedCallback)(AppContext*, void*);
 typedef void (* AppStatusChangedCallback)(AppContext*, App*, void*);
 
 AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback = 0, const char* customCacheDir = "", const char* customDownloadDir = "");
@@ -19,12 +19,13 @@ void DestroyLoaderContext(AppContext* context);
 
 void RefreshMetadata(AppContext* context);
 void RefreshMetadataAsync(RefreshMetadataAsyncCompletedCallback completedCallback, AppContext* context);
-App** GetAppList(AppContext* context, App** &app, int* num);
+App** GetAppList(AppContext* context, int* num);
 bool DownloadApp(AppContext* context, App* app);
 void DownloadAppAsync(AppContext* context, App* app);
-void GetDeviceList(AppContext* context, AdbDevice*& device, int* num);
-void FreeDeviceList(AdbDevice* device, int* num);
-void SetADBDeviceListChangedCallback(AppContext* context, ADBDeviceListChangedCallback callback);
+bool MLoaderInstallApp(AppContext* context, App* app, AdbDevice* device);
+void MLoaderInstallAppAsync(AppContext* context, App* app, AdbDevice* device);
+AdbDevice** GetDeviceList(AppContext* context, int* num);
+void SetADBDeviceListChangedCallback(AppContext* context, ADBDeviceListChangedCallback callback, void* userData = NULL);
 void ClearADBDeviceListChangedCallback(AppContext* context);
 void SetAppStatusChangedCallback(AppContext* context, AppStatusChangedCallback callback, void* userData = NULL);
 void ClearAppStatusChangedCallback(AppContext* context);
