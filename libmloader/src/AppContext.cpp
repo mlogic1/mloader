@@ -324,12 +324,14 @@ void DestroyLoaderContext(AppContext* context)
 			free((char*)context->AppList[i]->PackageName);
 			free((char*)context->AppList[i]->LastUpdated);
 			free((char*)context->AppList[i]->StatusCStr);
+			free((char*)context->AppList[i]->Note);
 
 			context->AppList[i]->GameName		= NULL;
 			context->AppList[i]->ReleaseName	= NULL;
 			context->AppList[i]->PackageName	= NULL;
 			context->AppList[i]->LastUpdated	= NULL;
 			context->AppList[i]->StatusCStr		= NULL;
+			context->AppList[i]->Note			= NULL;
 
 			delete context->AppList[i];
 		}
@@ -398,8 +400,8 @@ App** GetAppList(AppContext* context, int* num)
 			context->AppList[i]->RatingCount 	= pair.first.RatingCount;
 			context->AppList[i]->Status 		= pair.second;
 			context->AppList[i]->AppStatusParam = -1;									// When downloading or extracting, progress is reported with this param, otherwise it defaults to -1
-			context->AppList[i]->StatusCStr = GetUpdateStatusString(context->AppList[i]->Status);
-
+			context->AppList[i]->StatusCStr 	= GetUpdateStatusString(context->AppList[i]->Status);
+			context->AppList[i]->Note			= strdup(context->VrpManager->GetAppNote(pair.first).c_str());
 			++i;
 		}
 	}

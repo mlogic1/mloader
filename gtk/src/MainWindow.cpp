@@ -166,6 +166,7 @@ void MainWindow::InitializeLayout()
 	m_downloadBtn					= GTK_BUTTON(gtk_builder_get_object(m_builder, "main_button_download"));
 	m_installBtn					= GTK_BUTTON(gtk_builder_get_object(m_builder, "main_button_install"));
 	m_imageThumbPreview				= GTK_IMAGE(gtk_builder_get_object(m_builder, "main_bottom_image_app_thumb"));
+	m_appNoteLabel					= GTK_LABEL(gtk_builder_get_object(m_builder, "main_bottom_label_note"));
 
 	gtk_tree_model_filter_set_visible_func(m_appTreeModelFilter, applist_visibility_func, this, NULL);
 
@@ -337,9 +338,11 @@ void MainWindow::RefreshDetailsPane()
 	if (m_selectedApp == nullptr)
 	{
 		// clear everything
-
+		gtk_label_set_text(m_appNoteLabel, "");
 		return;
 	}
+
+	gtk_label_set_text(m_appNoteLabel, m_selectedApp->Note);
 
 	char* imagePath = GetAppThumbImage(m_appContext, m_selectedApp);
 

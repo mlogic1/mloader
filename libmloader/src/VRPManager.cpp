@@ -253,6 +253,39 @@ namespace mloader
 		return "";
 	}
 
+	std::string VRPManager::GetAppNote(const GameInfo& game) const
+	{
+		const fs::path metaDir = m_cacheDir / "metadata/.meta/notes/";
+
+		if (!fs::exists(metaDir))
+		{
+			return "";
+		}
+
+		const fs::path noteFile = metaDir / (game.ReleaseName + ".txt");
+
+		if (!fs::exists(noteFile))
+		{
+			return "";
+		}
+
+		std::ifstream inFile(noteFile, std::ios::in);
+		if (!inFile.is_open())
+		{
+			return "";
+		}
+
+		std::string note;
+		std::string line;
+		while(std::getline(inFile, line))
+		{
+			note += line + "\n";
+		}
+
+		inFile.close();
+		return note;
+	}
+
 	bool VRPManager::GameInstalled(const GameInfo& game) const
 	{
 		const fs::path manifestFile = m_downloadDir / game.ReleaseName / "release.manifest";

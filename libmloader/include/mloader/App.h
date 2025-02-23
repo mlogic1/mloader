@@ -43,6 +43,7 @@ typedef struct
 	AppStatus Status;
 	int AppStatusParam;			// When downloading or extracting, progress is reported with this param, otherwise it defaults to -1
 	const char* StatusCStr;		// Formatted Status as string with param, e.g. "Downloading (19%)" or "Extracting (24%)"
+	const char* Note;
 } App;
 
 #endif // APP_H
