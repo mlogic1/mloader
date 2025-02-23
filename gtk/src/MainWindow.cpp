@@ -26,7 +26,7 @@ static void gquit(GtkWidget* widget, gpointer data)
 }
 
 // TODO: investigate the option of using this:
-// (sigc::mem_fun(*this, 
+// (sigc::mem_fun(*this,
 
 // The following static functions serve as a binding between GTK C api and this cpp class
 static void applist_filter_changed(GtkWidget* widget, gpointer data)
@@ -115,7 +115,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::OnAppFilterChanged()
 {
-	gtk_tree_model_filter_refilter(m_appTreeModelFilter);	
+	gtk_tree_model_filter_refilter(m_appTreeModelFilter);
 }
 
 gboolean MainWindow::OnFilterFunction(GtkTreeModel *model, GtkTreeIter *iter)
@@ -154,18 +154,19 @@ gboolean MainWindow::OnFilterFunction(GtkTreeModel *model, GtkTreeIter *iter)
 
 void MainWindow::InitializeLayout()
 {
-	m_builder 					= gtk_builder_new_from_file(LAYOUT_FILE);
-	m_window 					= GTK_WIDGET(gtk_builder_get_object(m_builder, "main_window"));
-	m_mainAppTree 				= GTK_TREE_VIEW(gtk_builder_get_object(m_builder, "main_app_tree"));
-	m_mainAppTreeListStore 		= GTK_LIST_STORE(gtk_builder_get_object(m_builder, "liststoreAppList"));
-	m_mainDeviceListStore		= GTK_LIST_STORE(gtk_builder_get_object(m_builder, "liststoreDeviceList"));
-	m_entryFilter				= GTK_ENTRY(gtk_builder_get_object(m_builder, "main_entry_search_filter"));
-	m_appTreeModelFilter		= GTK_TREE_MODEL_FILTER(gtk_builder_get_object(m_builder, "listStoreAppListModelFilter"));
-	m_mainDeviceListComboBox	= GTK_COMBO_BOX(gtk_builder_get_object(m_builder, "main_combo_device_list"));
-	m_downloadBtn				= GTK_BUTTON(gtk_builder_get_object(m_builder, "main_button_download"));
-	m_installBtn				= GTK_BUTTON(gtk_builder_get_object(m_builder, "main_button_install"));
-	m_imageThumbPreview			= GTK_IMAGE(gtk_builder_get_object(m_builder, "main_bottom_image_app_thumb"));
-	
+	m_builder 						= gtk_builder_new_from_file(LAYOUT_FILE);
+	m_window 						= GTK_WIDGET(gtk_builder_get_object(m_builder, "main_window"));
+	m_mainAppTree 					= GTK_TREE_VIEW(gtk_builder_get_object(m_builder, "main_app_tree"));
+	m_mainAppTreeListStore 			= GTK_LIST_STORE(gtk_builder_get_object(m_builder, "liststoreAppList"));
+	m_mainDeviceListStore			= GTK_LIST_STORE(gtk_builder_get_object(m_builder, "liststoreDeviceList"));
+	m_entryFilter					= GTK_ENTRY(gtk_builder_get_object(m_builder, "main_entry_search_filter"));
+	m_appTreeModelFilter			= GTK_TREE_MODEL_FILTER(gtk_builder_get_object(m_builder, "listStoreAppListModelFilter"));
+	m_mainDeviceListComboBox		= GTK_COMBO_BOX(gtk_builder_get_object(m_builder, "main_combo_device_list"));
+	m_mainDeviceListComboBoxEntry 	= GTK_ENTRY(gtk_builder_get_object(m_builder, "main_combo_device_list_entry"));
+	m_downloadBtn					= GTK_BUTTON(gtk_builder_get_object(m_builder, "main_button_download"));
+	m_installBtn					= GTK_BUTTON(gtk_builder_get_object(m_builder, "main_button_install"));
+	m_imageThumbPreview				= GTK_IMAGE(gtk_builder_get_object(m_builder, "main_bottom_image_app_thumb"));
+
 	gtk_tree_model_filter_set_visible_func(m_appTreeModelFilter, applist_visibility_func, this, NULL);
 
 	g_signal_connect(m_window, "destroy", G_CALLBACK(gquit), this);
@@ -224,7 +225,7 @@ void MainWindow::RefreshAppList()
 	{
 		gtk_list_store_append(m_mainAppTreeListStore, &iter);
 
-		gtk_list_store_set(m_mainAppTreeListStore, &iter, 
+		gtk_list_store_set(m_mainAppTreeListStore, &iter,
 			0, m_appList[i]->GameName,
 			1, m_appList[i]->StatusCStr,
 			2, m_appList[i]->ReleaseName,
@@ -267,9 +268,14 @@ void MainWindow::RefreshDeviceList()
 
 			deviceString += "\t" + DEVICE_STATUS_MAP.at(m_adbDeviceList[i]->DeviceStatus);
 		}
-		
+
 		gtk_list_store_set(m_mainDeviceListStore, &iter, 0, deviceString.c_str(), -1);
-		
+	}
+
+	// Select a device by default
+	if (m_numAdbDevices > 0)
+	{
+		gtk_combo_box_set_active(m_mainDeviceListComboBox, 0);
 	}
 }
 
@@ -285,11 +291,13 @@ void MainWindow::OnAdbDeviceSelectionChanged()
 	if (index == -1)
 	{
 		m_selectedAdbDevice = nullptr;
+		gtk_entry_set_text(m_mainDeviceListComboBoxEntry, "");
 	}
 	else
 	{
 		m_selectedAdbDevice = m_adbDeviceList[index];
 	}
+	MLoaderSetSelectedAdbDevice(m_appContext, m_selectedAdbDevice);
 	RefreshInstallDownloadButtons();
 }
 
@@ -306,10 +314,10 @@ void MainWindow::OnAppSelectionChanged()
 		GtkTreeModel* model = GTK_TREE_MODEL(m_mainAppTreeListStore);
 		GtkTreeIter iter;
 		gtk_tree_selection_get_selected(selection, &model, &iter);
-	
+
 		gchar* releaseName;
 		gtk_tree_model_get(model, &iter, 2, &releaseName, -1);
-	
+
 		for (int i = 0; i < m_numApps; ++i)
 		{
 			if (strcmp(releaseName, m_appList[i]->ReleaseName) == 0)
@@ -349,7 +357,7 @@ void MainWindow::RefreshDetailsPane()
 		{
 			gtk_image_set_from_pixbuf(m_imageThumbPreview, m_imageThumbBuffer);
 		}
-		
+
 		free(imagePath);
 	}
 }
@@ -426,5 +434,5 @@ void MainWindow::ClearPixBuffer()
 	{
 		free(m_imageThumbBuffer);
 		m_imageThumbBuffer = nullptr;
-	}	
+	}
 }

@@ -37,6 +37,7 @@ namespace mloader
 		
 			std::vector<AdbDevice*> GetAdbDevices();
 			void InstallFilesToDevice(const std::string& packageName, const std::vector<fs::path>& fileList, const AdbDevice& device) const;
+			std::vector<std::string> GetDeviceThirdPartyPackages(const AdbDevice& device) const;
 		
 		private:
 			bool CheckAndDownloadTool();

@@ -208,7 +208,7 @@
                 <property name="has-entry">True</property>
                 <property name="entry-text-column">0</property>
                 <child internal-child="entry">
-                  <object class="GtkEntry">
+                  <object class="GtkEntry" id="main_combo_device_list_entry">
                     <property name="can-focus">False</property>
                     <property name="placeholder-text" translatable="yes">Select a device</property>
                   </object>

@@ -40,6 +40,7 @@ void DownloadAppAsync(AppContext* context, App* app);
 bool MLoaderInstallApp(AppContext* context, App* app, AdbDevice* device);
 void MLoaderInstallAppAsync(AppContext* context, App* app, AdbDevice* device);
 AdbDevice** GetDeviceList(AppContext* context, int* num);
+void MLoaderSetSelectedAdbDevice(AppContext* context, AdbDevice* device);
 void SetADBDeviceListChangedCallback(AppContext* context, ADBDeviceListChangedCallback callback, void* userData = NULL);
 void ClearADBDeviceListChangedCallback(AppContext* context);
 void SetAppStatusChangedCallback(AppContext* context, AppStatusChangedCallback callback, void* userData = NULL);

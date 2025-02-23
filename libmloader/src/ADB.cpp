@@ -94,6 +94,22 @@ namespace mloader
 		}
 	}
 
+	std::vector<std::string> ADB::GetDeviceThirdPartyPackages(const AdbDevice& device) const
+	{
+		std::vector<std::string> packages;
+		ExecShellWithCallback([&packages](const std::string& package)
+		{
+			std::string packageTrimmed = package.substr(sizeof("package:") - 1, package.length() - sizeof("package:"));
+			if (packageTrimmed.back() == '\r')
+			{
+				packageTrimmed.pop_back();
+			}
+			packages.push_back(packageTrimmed);
+		},
+		m_adbToolPath, "-s", device.DeviceId, "shell", "pm", "list", "packages", "-3");
+		return packages;
+	}
+
 	bool ADB::CheckAndDownloadTool()
 	{
 		const fs::path adbToolDir = m_cacheDir / "platform-tools/";

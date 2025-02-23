@@ -64,6 +64,7 @@ class MainWindow
 		GtkListStore* m_mainAppTreeListStore;
 		GtkListStore* m_mainDeviceListStore;
 		GtkComboBox* m_mainDeviceListComboBox;
+		GtkEntry* m_mainDeviceListComboBoxEntry;
 		GtkEntry* m_entryFilter;
 		GtkTreeModelFilter* m_appTreeModelFilter;
 		GtkTreeView* m_mainAppTree;

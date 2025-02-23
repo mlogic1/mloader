@@ -489,6 +489,41 @@ AdbDevice** GetDeviceList(AppContext* context, int* num)
 	return context->AdbDeviceList;
 }
 
+void MLoaderSetSelectedAdbDevice(AppContext* context, AdbDevice* device)
+{
+	// This is more of a utility function, it only serves to update app status between Downloaded / Installed when the device is selected
+
+	if (device == nullptr)
+	{
+		// if the last device was disconnected
+		for (auto game : context->VrpManager->GetGameList())
+		{
+			if (game.second >= AppStatus::Installing)
+			{
+				game.second = AppStatus::Downloaded;
+			}
+		}
+		return;
+	}
+
+	const std::vector<std::string> installedPackages = context->Adb->GetDeviceThirdPartyPackages(*device);
+	
+	for (auto game : context->VrpManager->GetGameList())
+	{
+		if (game.second >= AppStatus::Downloaded)
+		{
+			if (std::count(installedPackages.cbegin(), installedPackages.cend(), game.first.PackageName) > 0)
+			{
+				context->VrpManager->UpdateGameStatus(game.first, AppStatus::Installed);
+			}
+			else
+			{
+				context->VrpManager->UpdateGameStatus(game.first, AppStatus::Downloaded);
+			}
+		}
+	}
+}
+
 void SetADBDeviceListChangedCallback(AppContext* context, ADBDeviceListChangedCallback callback, void* userData)
 {
 	context->AdbDeviceListChangedCallback = callback;
