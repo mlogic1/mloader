@@ -56,9 +56,15 @@ namespace mloader
 		return m_rClone.SyncFile(m_baseUri, "meta.7z", m_cacheDir);
 	}
 
+	AppStatus VRPManager::GetGameStatus(const GameInfo& gameInfo) const
+	{
+		return m_gameList.at(gameInfo);
+	}
+
 	void VRPManager::UpdateGameStatus(const GameInfo& gameInfo, AppStatus newStatus, int statusParam)
 	{
 		m_gameList[gameInfo] = newStatus;
+
 		if (m_gameStatusChangedCallback)
 		{
 			m_gameStatusChangedCallback(gameInfo, newStatus, statusParam);
@@ -68,7 +74,7 @@ namespace mloader
 	bool VRPManager::RefreshMetadata(bool forceRedownload)
 	{
 		m_logger.LogInfo(LOG_NAME, "Refreshing metdata");
-		fs::path metaFile = m_cacheDir / "meta.7z";	
+		fs::path metaFile = m_cacheDir / "meta.7z";
 		fs::path metaDir = m_cacheDir / "metadata";
 		fs::path gameListFile = metaDir / "VRP-GameList.txt";
 
@@ -105,8 +111,8 @@ namespace mloader
 		if (!file.is_open())
 		{
 			return false;
-		}		
-		
+		}
+
 		std::vector<std::string> csvRows;
 		std::string line;
 
@@ -131,13 +137,13 @@ namespace mloader
 
 			std::getline(ss, item, ';');
 			info.PackageName = std::move(item);
-			
+
 			std::getline(ss, item, ';');
 			info.VersionCode = std::stoi(item);
-		
+
 			std::getline(ss, item, ';');
 			info.LastUpdated = std::move(item);
-		
+
 			std::getline(ss, item, ';');
 			info.SizeMB = std::stoi(item);;
 
@@ -146,7 +152,7 @@ namespace mloader
 
 			std::getline(ss, item, ';');
 			info.Rating = std::stof(item);;
-			
+
 			std::getline(ss, item, ';');
 			info.RatingCount = std::stoi(item);
 
@@ -157,7 +163,7 @@ namespace mloader
 			}
 			m_gameList.emplace(std::move(info), appStatus);
 		}
-		
+
 		m_logger.LogInfo(LOG_NAME, "Loaded " + std::to_string(m_gameList.size()) + " games from the meta file");
 		return true;
 	}
@@ -178,12 +184,13 @@ namespace mloader
 
 	void VRPManager::DownloadGame(const GameInfo& game)
 	{
-		m_logger.LogInfo(LOG_NAME, "Starting download: " + std::string(game.ReleaseName));
-		if (m_gameList[game] != AppStatus::NoInfo && m_gameList[game] != AppStatus::DownloadError)
+		if (m_gameList[game] != AppStatus::NoInfo && m_gameList[game] != AppStatus::DownloadError && m_gameList[game] != AppStatus::DownloadQueued)
 		{
+			m_logger.LogError(LOG_NAME, std::string("Refusing to start download. App status is ") + std::to_string(m_gameList[game]) + std::string(". It should be NoInfo, DownloadError or DownloadQueued"));
 			return; // or throw
 		}
 
+		m_logger.LogInfo(LOG_NAME, "Starting download: " + std::string(game.ReleaseName));
 		UpdateGameStatus(game, AppStatus::Downloading, 0);
 
 		// Download progress callback
@@ -346,7 +353,7 @@ namespace mloader
 			// TODO: check how old the file is.
 			// if older than 24 hours download it again
 		}
-		
+
 		return true;
 	}
 }

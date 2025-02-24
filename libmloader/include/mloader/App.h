@@ -19,17 +19,19 @@
 enum AppStatus
 {
 	NoInfo = 0,	// default state (downloadable)
-	Downloading,	// TODO: implement queued
+	DownloadQueued,
+	Downloading,
 	DownloadError,
 	Extracting,
 	ExtractingError,
 	Downloaded,
+	InstallQueued,
 	Installing,
 	InstallingError,
 	Installed
 };
 
-typedef struct 
+typedef struct
 {
 	const char* GameName;
 	const char* ReleaseName;

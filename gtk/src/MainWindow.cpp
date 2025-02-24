@@ -397,17 +397,13 @@ void MainWindow::OnDownloadButtonClicked()
 	if (!m_selectedApp) { return; } // This shouldn't occur, but just in case
 
 	gtk_widget_set_sensitive(GTK_WIDGET(m_downloadBtn), false);
-	DownloadAppAsync(m_appContext, m_selectedApp);
+	DownloadApp(m_appContext, m_selectedApp);
 }
 
 void MainWindow::OnInstallButtonClicked()
 {
 	if (!m_selectedApp) { return; } // This shouldn't occur, but just in case
-
-	ShowGenericMessageDialog(GTK_WINDOW(m_window), "Install something something");
-
-	// TODO: Begin installation
-	MLoaderInstallAppAsync(m_appContext, m_selectedApp, m_selectedAdbDevice);
+	MLoaderInstallApp(m_appContext, m_selectedApp, m_selectedAdbDevice);
 }
 
 void MainWindow::OnAppStatusChanged(App* app)

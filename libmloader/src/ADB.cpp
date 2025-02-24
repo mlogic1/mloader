@@ -72,7 +72,7 @@ namespace mloader
 			ExecShell(m_adbToolPath.c_str(), "-s", device.DeviceId, "shell", "rm", "-rf", obbDir);
 			ExecShell(m_adbToolPath.c_str(), "-s", device.DeviceId, "shell", "mkdir", obbDir);	// mkdir is probably not needed but it doesn't hurt (adb push would create the directory regardless)
 		}
-		
+
 		for (const fs::path& file : fileList)
 		{
 			const std::string extension = file.extension();
@@ -80,11 +80,17 @@ namespace mloader
 
 			if (extension == ".apk")
 			{
-				InstallAPK(file, device.DeviceId);
+				if (!InstallAPK(file, device.DeviceId))
+				{
+					throw std::runtime_error("Unable to install apk file " + file.string() + " to device " + device.DeviceId);
+				}
 			}
 			else if (extension == ".obb")
 			{
-				InstallOBB(packageName, file, device.DeviceId);
+				if (!InstallOBB(packageName, file, device.DeviceId))
+				{
+					throw std::runtime_error("Unable to install obb file " + file.string() + " to device " + device.DeviceId);
+				}
 			}
 			else
 			{
@@ -121,7 +127,7 @@ namespace mloader
 		// x86 Intel (no support for apple arm yet.)
 		const std::string httpFile{"https://dl.google.com/android/repository/platform-tools-latest-darwin.zip"};
 		const fs::path adbToolPathZip = m_cacheDir / "platform-tools-latest-darwin.zip";
-		
+
 	#else
 		const std::string httpFile{"https://dl.google.com/android/repository/platform-tools-latest-linux.zip"};
 		const fs::path adbToolPathZip = m_cacheDir / "platform-tools-latest-linux.zip";
@@ -150,7 +156,7 @@ namespace mloader
 				perror("popen");
 				return false;
 			}
-			
+
 			char path[1035];
 			// Read the output a line at a time - output it.
 			while (fgets(path, sizeof(path), fp) != NULL) {
@@ -163,7 +169,7 @@ namespace mloader
 				m_logger.LogError(LOG_NAME, "Unzipping ADB failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				perror("pclose");
 				return false;
-			} 
+			}
 			else
 			{
 				// printf("Command exited with status: %d\n", WEXITSTATUS(status));
@@ -180,9 +186,9 @@ namespace mloader
 	void ADB::StartServer()
 	{
 		while(m_backgroundServiceBusy) { } // wait for the background service to finish (just in case)
-		
+
 		m_logger.LogInfo(LOG_NAME, "Starting ADB Server");
-		
+
 		FILE* fp;
 		char strbuffer[512];
 
@@ -193,7 +199,7 @@ namespace mloader
 			m_logger.LogError(LOG_NAME, "Starting ADB Server failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("popen");
 		}
-		
+
 		char path[1035];
 		// Read the output a line at a time - output it.
 		while (fgets(path, sizeof(path), fp) != NULL) {
@@ -211,19 +217,19 @@ namespace mloader
 			m_logger.LogInfo(LOG_NAME, "ADB Server started");
 		}
 	}
-	
+
 	void ADB::ResetServer()
 	{
 		KillServer();
 		StartServer();
 	}
-	
+
 	void ADB::KillServer()
 	{
 		while(m_backgroundServiceBusy) { } // wait for the background service to finish
-		
+
 		m_logger.LogInfo(LOG_NAME, "Stopping ADB Server");
-		
+
 		FILE* fp;
 		char strbuffer[512];
 
@@ -235,7 +241,7 @@ namespace mloader
 			perror("popen");
 			// return false;
 		}
-		
+
 		char path[1035];
 		// Read the output a line at a time - output it.
 		while (fgets(path, sizeof(path), fp) != NULL) {
@@ -259,21 +265,21 @@ namespace mloader
 		constexpr const char* shellCommandFormat = "%s -s %s shell getprop ro.product.model";
 		char strBuffer[255];
 		snprintf(strBuffer, sizeof(strBuffer), shellCommandFormat, adbExecutablePath.c_str(), deviceId.c_str());
-		
+
 		FILE* fp = popen(strBuffer, "r");
 		if (fp == NULL)
 		{
 			perror("popen");
 		}
-		
+
 		char modelBuffer[255];
 		fgets(modelBuffer, sizeof(modelBuffer), fp);
-		
+
 		int status = pclose(fp);
 		if (status == -1) {
 			perror("pclose");
 		}
-		
+
 		std::string result(modelBuffer);
 		result.erase(std::remove_if(result.begin(), result.end(), [](char c) { return c == '\n' || c == '\r'; }), result.end());
 		return result;
@@ -296,9 +302,9 @@ namespace mloader
 					perror("popen");
 					// return false;
 				}
-				
+
 				// m_logger.LogInfo(LOG_NAME, Refreshing device list);
-				
+
 				char path[1035];
 				std::vector<std::string> adbDevices;	// list from shell
 				// Read the output
@@ -322,14 +328,14 @@ namespace mloader
 				}
 
 				adbDevices.erase(adbDevices.begin());	// remove header line
-				
+
 				adbDevices.erase(std::find_if(adbDevices.begin(), adbDevices.end(), [](const std::string& deviceLine)
 				{
 					return deviceLine.empty() || deviceLine == "\n";
 				}));
-				
+
 				decltype(m_devices) deviceList;
-				
+
 				for (std::string adbDeviceLine : adbDevices)
 				{
 					adbDeviceLine.erase(std::remove(adbDeviceLine.begin(), adbDeviceLine.end(), '\n'), adbDeviceLine.cend());
@@ -338,13 +344,13 @@ namespace mloader
 					AdbDeviceStatus eDeviceStatus = AdbDeviceStatus::Unknown;
 					std::getline(iss, deviceId, '\t');
 					std::getline(iss, deviceStatus, '\t');
-					
+
 					// possible device statuses:
 					// device - connected and authorized
 					// unauthorized - requires authorization
 					// offline - device was connected but went offline
 					// no permissions - no debuggging permissions
-					
+
 					if (deviceStatus == "device")
 					{
 						deviceModel = GetDeviceModel(m_adbToolPath, deviceId);
@@ -355,7 +361,7 @@ namespace mloader
 					{
 						deviceStatus = "no permissions";
 					}
-					
+
 					static const std::unordered_map<std::string, AdbDeviceStatus> DEVICE_STATUS_MAP =
 					{
 						{ "device", AdbDeviceStatus::OK 					},
@@ -363,7 +369,7 @@ namespace mloader
 						{ "offline", AdbDeviceStatus::Offline 				},
 						{ "no permissions", AdbDeviceStatus::NoPermissions	}
 					};
-					
+
 					try
 					{
 						eDeviceStatus = DEVICE_STATUS_MAP.at(deviceStatus);
@@ -372,14 +378,14 @@ namespace mloader
 					{
 						m_logger.LogError(LOG_NAME, "Unknown device status reported on device list: " + deviceStatus + ". " + std::string(exception.what()));
 					}
-					
+
 					deviceList.push_back({
 						 .DeviceId = strdup(deviceId.c_str()),
 						 .Model = strdup(deviceModel.c_str()),
 						 .DeviceStatus = eDeviceStatus
 					});
 				}
-				
+
 				if (deviceList != m_devices)
 				{
 					m_logger.LogInfo(LOG_NAME, "Device change detected");
@@ -394,7 +400,7 @@ namespace mloader
 						m_adbDeviceListChangedCallback();
 					}
 				}
-				
+
 				m_backgroundServiceBusy = false;
 			}
 		}).detach();
@@ -404,7 +410,7 @@ namespace mloader
 	{
 		m_logger.LogInfo(LOG_NAME, "Installing APK " + file.string() + " to device " + serial);
 		std::string escapedAPK = "\"" + file.string() + "\"";
-		return ExecShell(m_adbToolPath.c_str(), "-s", serial, "install", "-r", escapedAPK.c_str()) == 0;
+		return ExecShell(m_adbToolPath.c_str(), "-s", serial, "install", "-r", escapedAPK.c_str()) == EXIT_SUCCESS;
 	}
 
 	bool ADB::InstallOBB(const std::string& packageName, const fs::path& file, const char* serial) const
@@ -412,6 +418,6 @@ namespace mloader
 		m_logger.LogInfo(LOG_NAME, "Installing OBB " + file.string() + " to device " + serial);
 		fs::path targetLocation = fs::path("/sdcard/Android/obb/") / packageName / file.filename();
 		std::string escapedOBB = "\"" + file.string() + "\"";
-		return ExecShell(m_adbToolPath.c_str(), "-s", serial, "push", escapedOBB.c_str(), targetLocation) == 0;
+		return ExecShell(m_adbToolPath.c_str(), "-s", serial, "push", escapedOBB.c_str(), targetLocation) == EXIT_SUCCESS;
 	}
 }

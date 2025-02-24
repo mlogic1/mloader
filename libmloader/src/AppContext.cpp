@@ -19,6 +19,7 @@
 #include "RClone.h"
 #include "ADB.h"
 #include "7z.h"
+#include "QueueManager.h"
 #include "curl_global.h"
 #include <algorithm>
 #include <filesystem>
@@ -36,11 +37,12 @@ struct AppContext
 	mloader::Zip*					Zip7;
 	mloader::ADB*					Adb;
 	mloader::Logger*				Logger;
+	mloader::QueueManager*			QueueManager;
 
 	// App list
 	App** 							AppList = nullptr;
 	AdbDevice**						AdbDeviceList = nullptr;
-	
+
 	// callbacks
 	ADBDeviceListChangedCallback	AdbDeviceListChangedCallback			= nullptr;
 	void*							AdbDeviceListChangedCallbackUserData	= nullptr;
@@ -96,9 +98,9 @@ static int RefreshAdbDeviceList(AppContext* context)
 
 	std::vector<AdbDevice*> adbDevices = context->Adb->GetAdbDevices();
 	int numDevices = static_cast<int>(adbDevices.size());
-	
+
 	context->AdbDeviceList = new AdbDevice*[numDevices];
-	
+
 	for(int i = 0; i < numDevices; ++i)
 	{
 		context->AdbDeviceList[i] = adbDevices[i];
@@ -112,11 +114,13 @@ static char* GetUpdateStatusString(AppStatus appStatus, int statusParam = -1)
 	static std::unordered_map<AppStatus, const char*> APP_STATUS_STR_MAP =
 	{
 		{ AppStatus::NoInfo, 			"" 					},
+		{ AppStatus::DownloadQueued,	"Download Queued"	},
 		{ AppStatus::Downloading, 		"Downloading" 		},
 		{ AppStatus::DownloadError, 	"Download Error"	},
 		{ AppStatus::Extracting, 		"Extracting"		},
 		{ AppStatus::ExtractingError,	"Extracting Error"	},
 		{ AppStatus::Downloaded,		"Downloaded"		},
+		{ AppStatus::InstallQueued,		"Install Queued"	},
 		{ AppStatus::Installing,		"Installing"		},
 		{ AppStatus::InstallingError,	"Installing Error"	},
 		{ AppStatus::Installed,			"Installed"			}
@@ -131,7 +135,7 @@ static char* GetUpdateStatusString(AppStatus appStatus, int statusParam = -1)
 	{
 		result = strdup(APP_STATUS_STR_MAP.at(appStatus));
 	}
-	
+
 	return result;
 }
 
@@ -168,7 +172,7 @@ void OnGameInfoStatusChanged(AppContext* context, const mloader::GameInfo& gameI
 AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, const char* customCacheDir, const char* customDownloadDir)
 {
 	GenericCallback(callback, "Initializing");
-	
+
 	mloader::InitGlobalCurl();
 	fs::path cacheDir = DetermineCacheDir();
 	fs::path downloadDir = DetermineDownloadDir();
@@ -213,11 +217,11 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 		delete appContext;
 		return nullptr;
 	}
-	
+
 	appContext->Logger->LogInfo("Initialization", "Starting up");
 	appContext->Logger->LogInfo("Initialization", "Cache directory: " + std::string(cacheDir));
 	appContext->Logger->LogInfo("Initialization", "Download directory: " + std::string(downloadDir));
-	
+
 	try
 	{
 		GenericCallback(callback, "Initializing RClone");
@@ -268,7 +272,7 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 		{
 			OnGameInfoStatusChanged(appContext, gameInfo, appStatus, statusParam);
 		};
-		
+
 		appContext->VrpManager = new mloader::VRPManager(*appContext->Rclone, *appContext->Zip7, cacheDir, downloadDir, *appContext->Logger, onAppStatusChanged);
 	}
 	catch(std::runtime_error& error)
@@ -281,6 +285,8 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 		delete appContext;
 		return nullptr;
 	}
+
+	appContext->QueueManager = new mloader::QueueManager(*appContext->VrpManager, *appContext->Adb, *appContext->Logger);
 
 	try
 	{
@@ -350,6 +356,7 @@ void DestroyLoaderContext(AppContext* context)
 
 	if (context != nullptr)
 	{
+		delete context->QueueManager;
 		delete context->VrpManager;
 		delete context->Adb;
 		delete context->Zip7;
@@ -363,6 +370,8 @@ void DestroyLoaderContext(AppContext* context)
 
 void RefreshMetadata(AppContext* context)
 {
+	context->QueueManager->ClearDownloadQueue();
+	context->QueueManager->ClearInstallQueue();
 	if (!context->VrpManager->RefreshMetadata())
 	{
 		err_msg = "Unable to download or load metadata";
@@ -423,15 +432,8 @@ bool DownloadApp(AppContext* context, App* app)
 		return false;
 	}
 
-	context->VrpManager->DownloadGame(it->first);
+	context->QueueManager->QueueDownload(&it->first);
 	return true;
-}
-
-void DownloadAppAsync(AppContext* context, App* app)
-{
-	std::thread([=]() {
-		DownloadApp(context, app);
-	}).detach();
 }
 
 bool MLoaderInstallApp(AppContext* context, App* app, AdbDevice* device)
@@ -454,28 +456,9 @@ bool MLoaderInstallApp(AppContext* context, App* app, AdbDevice* device)
 		return false;
 	}
 
-	try
-	{
-		context->VrpManager->UpdateGameStatus(it->first, AppStatus::Installing);
-		std::vector<fs::path> fileList = context->VrpManager->GetGameFileList(it->first);
-		context->Adb->InstallFilesToDevice(it->first.PackageName, fileList, *device);
-		context->VrpManager->UpdateGameStatus(it->first, AppStatus::Installed);
-	}
-	catch(std::runtime_error& err)
-	{
-		context->VrpManager->UpdateGameStatus(it->first, AppStatus::InstallingError);
-		err_msg = err.what();
-		return false;
-	}
+	context->QueueManager->QueueInstall(&it->first);
 
 	return true;
-}
-
-void MLoaderInstallAppAsync(AppContext* context, App* app, AdbDevice* device)
-{
-	std::thread([=]() {
-		MLoaderInstallApp(context, app, device);
-	}).detach();
 }
 
 AdbDevice** GetDeviceList(AppContext* context, int* num)
@@ -485,7 +468,7 @@ AdbDevice** GetDeviceList(AppContext* context, int* num)
 		*num = context->Adb->GetAdbDevices().size();
 		return context->AdbDeviceList;
 	}
-	
+
 	*num = RefreshAdbDeviceList(context);
 
 	return context->AdbDeviceList;
@@ -493,37 +476,7 @@ AdbDevice** GetDeviceList(AppContext* context, int* num)
 
 void MLoaderSetSelectedAdbDevice(AppContext* context, AdbDevice* device)
 {
-	// This is more of a utility function, it only serves to update app status between Downloaded / Installed when the device is selected
-
-	if (device == nullptr)
-	{
-		// if the last device was disconnected
-		for (auto game : context->VrpManager->GetGameList())
-		{
-			if (game.second >= AppStatus::Installing)
-			{
-				game.second = AppStatus::Downloaded;
-			}
-		}
-		return;
-	}
-
-	const std::vector<std::string> installedPackages = context->Adb->GetDeviceThirdPartyPackages(*device);
-	
-	for (auto game : context->VrpManager->GetGameList())
-	{
-		if (game.second >= AppStatus::Downloaded)
-		{
-			if (std::count(installedPackages.cbegin(), installedPackages.cend(), game.first.PackageName) > 0)
-			{
-				context->VrpManager->UpdateGameStatus(game.first, AppStatus::Installed);
-			}
-			else
-			{
-				context->VrpManager->UpdateGameStatus(game.first, AppStatus::Downloaded);
-			}
-		}
-	}
+	context->QueueManager->SetSelectedAdbDevice(device);
 }
 
 void SetADBDeviceListChangedCallback(AppContext* context, ADBDeviceListChangedCallback callback, void* userData)
@@ -563,7 +516,7 @@ char* GetAppThumbImage(AppContext* context, App* app)
 	{
 		return NULL;
 	}
-	
+
 	const std::string path = context->VrpManager->GetAppThumbImage(it->first);
 	if (path.empty())
 	{

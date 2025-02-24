@@ -18,11 +18,11 @@
 
 #include "model/GameInfo.h"
 #include <mloader/App.h>
-#include <string>
 #include <filesystem>
 #include <functional>
-#include <vector>
 #include <map>
+#include <string>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -41,6 +41,7 @@ namespace mloader
 			bool RefreshMetadata(bool forceRedownload = false);
 
 			const std::map<GameInfo, AppStatus>& GetGameList() const;
+			AppStatus GetGameStatus(const GameInfo& gameInfo) const;
 			void UpdateGameStatus(const GameInfo& gameInfo, AppStatus newStatus, int statusParam = -1);
 			void DownloadGame(const GameInfo& game);
 			std::string GetAppThumbImage(const GameInfo& game) const;
@@ -51,7 +52,7 @@ namespace mloader
 		private:
 			bool CheckVRPPublicCredentials();
 			bool DownloadMetadata();
-			
+
 		private:
 			const RClone& m_rClone;
 			const Zip& m_zip;

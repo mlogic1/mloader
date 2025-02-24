@@ -17,6 +17,7 @@ add_library(mloader SHARED  src/AppContext.cpp
 							src/curl_global.cpp
 							src/AdbDevice.cpp
 							src/Logger.cpp
+							src/QueueManager.cpp
 							src/model/GameInfo.cpp
 )
 

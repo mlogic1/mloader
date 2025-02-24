@@ -36,7 +36,7 @@ namespace mloader
 	bool Zip::CheckAndDownloadTool()
 	{
 		const fs::path zipToolDir = m_cacheDir / "7z/";
-		m_7zToolPath = zipToolDir / "7zz";	// Note for windows: i think the tool is called 7z on windowsß∫
+		m_7zToolPath = zipToolDir / "7zz";
 
 	#ifdef _WIN32
 		// const std::string httpFile{"https://www.7-zip.org/a/7zr.exe"};
@@ -81,7 +81,7 @@ namespace mloader
 				m_logger.LogInfo(LOG_NAME, "Unzipping 7z failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				return false;
 			}
-			
+
 			char path[1035];
 			// Read the output a line at a time - output it.
 			while (fgets(path, sizeof(path), fp) != NULL) {

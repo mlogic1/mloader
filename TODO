@@ -10,6 +10,7 @@ general:
     - on cli macos, when running a first time boot, it doesn't properly initialize ADB
     - if there's not enough space for a download, it will fail but mark the application status as Downloaded. It should be Download error
     - make MLoaderDownloads folder hidden by default in home dir, and also lowercase
+    - instead of single callbacks, use observer pattern, so any object can subscribe to any event
 
 rclone:
     - should have report progress and complete/fail callbacks
