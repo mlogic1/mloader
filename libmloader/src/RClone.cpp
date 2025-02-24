@@ -54,7 +54,7 @@ namespace mloader
 		const fs::path rcloneToolDir = m_cacheDir / "rclone-v1.69.0-linux-amd64/";
 		const fs::path rcloneToolPathZip = m_cacheDir / "rclone-v1.69.0-linux-amd64.zip";
 	#endif
-		
+
 		m_rcloneToolPath = rcloneToolDir / "rclone";
 
 		if (!fs::exists(m_rcloneToolPath))
@@ -80,7 +80,7 @@ namespace mloader
 				perror("popen");
 				return false;
 			}
-			
+
 			char path[1035];
 			// Read the output a line at a time - although don't output it.
 			while (fgets(path, sizeof(path), fp) != NULL) {
@@ -93,7 +93,7 @@ namespace mloader
 				perror("pclose");
 				m_logger.LogError(LOG_NAME, "Unzipping Rclone failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				return false;
-			} 
+			}
 			else
 			{
 				// printf("Command exited with status: %d\n", WEXITSTATUS(status));
@@ -122,7 +122,7 @@ namespace mloader
 			perror("popen");
 			return false;
 		}
-		
+
 		char path[1035];
 		// Read the output a line at a time - output it.
 		while (fgets(path, sizeof(path), fp) != NULL) {
@@ -134,7 +134,7 @@ namespace mloader
 			m_logger.LogError(LOG_NAME, "Sync file failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("pclose");
 			return false;
-		} 
+		}
 		else
 		{
 			// printf("Command exited with status: %d\n", WEXITSTATUS(status));
@@ -143,7 +143,7 @@ namespace mloader
 
 		return true;
 	}
-	
+
 	bool RClone::CopyFile(const std::string& baseUrl, const std::string& fileId, const fs::path& directory, std::function<void(uint8_t)> progressCallback) const
 	{
 		m_logger.LogInfo(LOG_NAME, "Downloading file " + fileId);
@@ -163,7 +163,7 @@ namespace mloader
 			perror("popen");
 			return false;
 		}
-		
+
 		char path[2048];
 
 		std::regex percentage_regex(R"((\d+)%(?=, ))"); // detect progress
@@ -185,11 +185,11 @@ namespace mloader
 		}
 
 		int status = pclose(fp);
-		if (status == -1) {
+		if (status != EXIT_SUCCESS) {
 			m_logger.LogError(LOG_NAME, "Downloading file failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 			perror("pclose");
 			return false;
-		} 
+		}
 		else
 		{
 			// printf("Command exited with status: %d\n", WEXITSTATUS(status));
