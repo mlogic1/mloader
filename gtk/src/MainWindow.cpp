@@ -111,6 +111,11 @@ MainWindow::~MainWindow()
 	}
 
 	ClearPixBuffer();
+	free(m_imageNotePlaceholderBuffer);
+	m_imageNotePlaceholderBuffer = nullptr;
+
+	free(m_imageThumbPlaceholderBuffer);
+	m_imageThumbPlaceholderBuffer = nullptr;
 }
 
 void MainWindow::OnAppFilterChanged()
@@ -166,7 +171,13 @@ void MainWindow::InitializeLayout()
 	m_downloadBtn					= GTK_BUTTON(gtk_builder_get_object(m_builder, "main_button_download"));
 	m_installBtn					= GTK_BUTTON(gtk_builder_get_object(m_builder, "main_button_install"));
 	m_imageThumbPreview				= GTK_IMAGE(gtk_builder_get_object(m_builder, "main_bottom_image_app_thumb"));
+	m_imageNotePlaceholder			= GTK_IMAGE(gtk_builder_get_object(m_builder, "main_bottom_image_note_placeholder"));
 	m_appNoteLabel					= GTK_LABEL(gtk_builder_get_object(m_builder, "main_bottom_label_note"));
+	GError* err;
+	m_imageNotePlaceholderBuffer	= gdk_pixbuf_new_from_file_at_scale("data/ui/note.png", 50, 75, true, &err);
+	m_imageThumbPlaceholderBuffer	= gdk_pixbuf_new_from_file_at_scale("data/ui/thumb.png", 75, 75, true, &err);
+	gtk_image_set_from_pixbuf(m_imageNotePlaceholder, m_imageNotePlaceholderBuffer);
+	gtk_image_set_from_pixbuf(m_imageThumbPreview, m_imageThumbPlaceholderBuffer);
 
 	gtk_tree_model_filter_set_visible_func(m_appTreeModelFilter, applist_visibility_func, this, NULL);
 
@@ -339,10 +350,12 @@ void MainWindow::RefreshDetailsPane()
 	{
 		// clear everything
 		gtk_label_set_text(m_appNoteLabel, "");
+		gtk_widget_set_visible(GTK_WIDGET(m_imageNotePlaceholder), true);
 		return;
 	}
 
 	gtk_label_set_text(m_appNoteLabel, m_selectedApp->Note);
+	gtk_widget_set_visible(GTK_WIDGET(m_imageNotePlaceholder), strlen(m_selectedApp->Note) == 0);
 
 	char* imagePath = GetAppThumbImage(m_appContext, m_selectedApp);
 

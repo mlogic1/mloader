@@ -72,6 +72,9 @@ class MainWindow
 		GtkButton* m_installBtn;
 		GtkImage* m_imageThumbPreview;
 		GdkPixbuf* m_imageThumbBuffer = nullptr;
+		GtkImage* m_imageNotePlaceholder;
+		GdkPixbuf* m_imageNotePlaceholderBuffer = nullptr;
+		GdkPixbuf* m_imageThumbPlaceholderBuffer = nullptr;
 		GtkLabel* m_appNoteLabel;
 
 		static constexpr const char* LAYOUT_FILE = "data/layouts/layout_main.glade";
