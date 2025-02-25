@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=MLoader
+GenericName=VR Sideloader
+
+Type=Application
+Exec=mloader-gtk %U
+TryExec=mloader-gtk
+Keywords=vr;sideloader;
+Icon=mloader
+Categories=System;Utility;
+Actions=Manager;
+Comment=Sideload apps to android based VR headsets

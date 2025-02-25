@@ -22,3 +22,31 @@ file(MAKE_DIRECTORY ${GTK_DATA_DIR})
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data
 	DESTINATION ${GTK_DATA_DIR})
+
+install(TARGETS mloader-gtk
+		RUNTIME DESTINATION /usr/bin)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data/layouts
+		DESTINATION /usr/share/mloader-gtk)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data/ui
+		DESTINATION /usr/share/mloader-gtk)
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/icons/16x16/mloader.png
+		DESTINATION /usr/share/icons/hicolor/16x16/apps/)
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/icons/32x32/mloader.png
+		DESTINATION /usr/share/icons/hicolor/32x32/apps/)
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/icons/48x48/mloader.png
+		DESTINATION /usr/share/icons/hicolor/48x48/apps/)
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/icons/64x64/mloader.png
+		DESTINATION /usr/share/icons/hicolor/64x64/apps/)
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/icons/256x256/mloader.png
+		DESTINATION /usr/share/icons/hicolor/256x256/apps/)
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/mloader.desktop
+		DESTINATION /usr/share/applications)
+

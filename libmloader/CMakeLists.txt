@@ -25,3 +25,6 @@ set(LIBMLOADER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_include_directories(mloader PUBLIC ${LIBMLOADER_INCLUDE_DIR})
 target_link_libraries(mloader PUBLIC CURL::libcurl)
+
+install(TARGETS mloader
+		LIBRARY DESTINATION /usr/lib)
