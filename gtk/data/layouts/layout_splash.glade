@@ -19,7 +19,7 @@
             <property name="height-request">200</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="pixbuf">../ui/splash_image.png</property>
+            <property name="resource">/mlres/ui/splash_image.png</property>
           </object>
         </child>
         <child>

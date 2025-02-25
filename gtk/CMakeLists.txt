@@ -8,29 +8,25 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK3 REQUIRED IMPORTED_TARGET gtk+-3.0)
 
+# Compile xml resources
+set(xml_resource_compile_script ../script/update_gtk_resources.sh)
+add_custom_target(run_xml_resource_compile_script ALL
+	COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/data ${xml_resource_compile_script}
+	COMMENT "Compiling XML Resources to .c")
+
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${xml_resource_compile_script})
+
 add_executable(mloader-gtk	src/main.cpp
 							src/SplashWindow.cpp
 							src/MainWindow.cpp
 							src/GtkGeneric.cpp
+							src/resource/mloader_gtk_resources.c
 )
 target_link_libraries(mloader-gtk PRIVATE 	mloader
 											PkgConfig::GTK3)
 
-
-set(GTK_DATA_DIR ${CMAKE_BINARY_DIR}/gtk/)
-file(MAKE_DIRECTORY ${GTK_DATA_DIR})
-
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data
-	DESTINATION ${GTK_DATA_DIR})
-
 install(TARGETS mloader-gtk
 		RUNTIME DESTINATION /usr/bin)
-
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data/layouts
-		DESTINATION /usr/share/mloader-gtk)
-
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data/ui
-		DESTINATION /usr/share/mloader-gtk)
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/icons/16x16/mloader.png
 		DESTINATION /usr/share/icons/hicolor/16x16/apps/)

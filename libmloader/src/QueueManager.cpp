@@ -138,7 +138,6 @@ namespace mloader
 
 			if (m_selectedDevice == nullptr)
 			{
-				m_logger.LogInfo(LOG_NAME, "aint doing shit");
 				continue;
 			}
 

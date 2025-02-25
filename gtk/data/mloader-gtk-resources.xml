@@ -1,0 +1,13 @@
+<?xml version="1.0"? encoding="UTF-8"?>
+<gresources>
+	<gresource prefix="mlres">
+		<file preprocess="xml-stripblanks">layouts/layout_splash.glade</file>
+		<file preprocess="xml-stripblanks">layouts/layout_main.glade</file>
+		<file>ui/blank.png</file>
+		<file>ui/download16.png</file>
+		<file>ui/install16.png</file>
+		<file>ui/note.png</file>
+		<file>ui/splash_image.png</file>
+		<file>ui/thumb.png</file>
+	</gresource>
+</gresources>

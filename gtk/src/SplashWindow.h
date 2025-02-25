@@ -34,5 +34,5 @@ class SplashWindow
 		GtkWidget* m_window;
 		GtkWidget* m_labelStatus;
 
-		static constexpr const char* LAYOUT_FILE = "data/layouts/layout_splash.glade";
+		static constexpr const char* LAYOUT_FILE = "/mlres/layouts/layout_splash.glade";
 };

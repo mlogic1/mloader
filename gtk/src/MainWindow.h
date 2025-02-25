@@ -77,5 +77,5 @@ class MainWindow
 		GdkPixbuf* m_imageThumbPlaceholderBuffer = nullptr;
 		GtkLabel* m_appNoteLabel;
 
-		static constexpr const char* LAYOUT_FILE = "data/layouts/layout_main.glade";
+		static constexpr const char* LAYOUT_RESOURCE = "/mlres/layouts/layout_main.glade";
 };

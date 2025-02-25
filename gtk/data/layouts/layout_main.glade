@@ -5,12 +5,12 @@
   <object class="GtkImage" id="image1">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
-    <property name="pixbuf">../ui/install16.png</property>
+    <property name="resource">/mlres/ui/install16.png</property>
   </object>
   <object class="GtkImage" id="image2">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
-    <property name="pixbuf">../ui/download16.png</property>
+    <property name="resource">/mlres/ui/download16.png</property>
   </object>
   <object class="GtkListStore" id="liststoreAppList">
     <columns>
@@ -413,7 +413,7 @@
                         <property name="height-request">150</property>
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="pixbuf">../ui/blank.png</property>
+                        <property name="resource">/mlres/ui/thumb.png</property>
                       </object>
                       <packing>
                         <property name="x">15</property>
@@ -441,7 +441,7 @@
                         <property name="height-request">150</property>
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="pixbuf">../ui/note.png</property>
+                        <property name="resource">/mlres/ui/note.png</property>
                       </object>
                       <packing>
                         <property name="x">300</property>

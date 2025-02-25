@@ -49,7 +49,7 @@ void SplashWindow::UpdateStatusLabelText(const char* text)
 
 void SplashWindow::InitializeLayout()
 {
-	m_builder = gtk_builder_new_from_file(LAYOUT_FILE);
+	m_builder = gtk_builder_new_from_resource(LAYOUT_FILE);
 	m_window = GTK_WIDGET(gtk_builder_get_object(m_builder, "splash_window"));
 	m_labelStatus = GTK_WIDGET(gtk_builder_get_object(m_builder, "splash_label_status"));
 

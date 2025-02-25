@@ -159,7 +159,7 @@ gboolean MainWindow::OnFilterFunction(GtkTreeModel *model, GtkTreeIter *iter)
 
 void MainWindow::InitializeLayout()
 {
-	m_builder 						= gtk_builder_new_from_file(LAYOUT_FILE);
+	m_builder						= gtk_builder_new_from_resource(LAYOUT_RESOURCE);
 	m_window 						= GTK_WIDGET(gtk_builder_get_object(m_builder, "main_window"));
 	m_mainAppTree 					= GTK_TREE_VIEW(gtk_builder_get_object(m_builder, "main_app_tree"));
 	m_mainAppTreeListStore 			= GTK_LIST_STORE(gtk_builder_get_object(m_builder, "liststoreAppList"));
@@ -173,9 +173,9 @@ void MainWindow::InitializeLayout()
 	m_imageThumbPreview				= GTK_IMAGE(gtk_builder_get_object(m_builder, "main_bottom_image_app_thumb"));
 	m_imageNotePlaceholder			= GTK_IMAGE(gtk_builder_get_object(m_builder, "main_bottom_image_note_placeholder"));
 	m_appNoteLabel					= GTK_LABEL(gtk_builder_get_object(m_builder, "main_bottom_label_note"));
-	GError* err;
-	m_imageNotePlaceholderBuffer	= gdk_pixbuf_new_from_file_at_scale("data/ui/note.png", 50, 75, true, &err);
-	m_imageThumbPlaceholderBuffer	= gdk_pixbuf_new_from_file_at_scale("data/ui/thumb.png", 75, 75, true, &err);
+	GError* err = NULL;
+	m_imageNotePlaceholderBuffer	= gdk_pixbuf_new_from_resource_at_scale("/mlres/ui/note.png", 50, 75, true, &err);
+	m_imageThumbPlaceholderBuffer	= gdk_pixbuf_new_from_resource_at_scale("/mlres/ui/thumb.png", 75, 75, true, &err);
 	gtk_image_set_from_pixbuf(m_imageNotePlaceholder, m_imageNotePlaceholderBuffer);
 	gtk_image_set_from_pixbuf(m_imageThumbPreview, m_imageThumbPlaceholderBuffer);
 
