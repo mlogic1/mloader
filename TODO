@@ -3,9 +3,7 @@ fix "cls/clear" calls with a nicer printing system. (Possibly redrawing characte
 general:
     - move /cli.cpp/h files to /cli/src
     - by default, do not build the cli tool. Set it behind a cmake variable
-    - implement a download queue to avoid concurrent downloads
     - implement utility functions:
-                            function to execute shell commands
                             function to calculate md5
     - on cli macos, when running a first time boot, it doesn't properly initialize ADB
     - if there's not enough space for a download, it will fail but mark the application status as Downloaded. It should be Download error
@@ -18,10 +16,9 @@ rclone:
 VRPManager:
     - load json to struct
     - move findFirstFileWithExtension to some utility
-    - implement reading notes
-    - decouple RClone from VRPManager and use the UpdateAppStatus
 
 gtk/linux specific:
+    - standalone sideloader
     - make devices on device list which aren't authorized red
     - format Popularity column to 2 decimals
     - tile view

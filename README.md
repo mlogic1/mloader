@@ -1,6 +1,6 @@
 # MLoader
 
-An alternative sideloader tool for installing apps to Android based VR devices (Quest 2/Quest 3 etc..).
+An alternative sideloader tool for Android based VR devices (Quest 2/Quest 3 etc..).
 This sideloader is designed to run on Linux and MacOS and uses ROOKIE's public mirror.
 
 ## Table of Contents
