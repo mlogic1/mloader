@@ -461,6 +461,23 @@ bool MLoaderInstallApp(AppContext* context, App* app, AdbDevice* device)
 	return true;
 }
 
+void MLoaderDeleteApp(AppContext* context, App* app)
+{
+	const std::map<mloader::GameInfo, AppStatus>& gameInfo = context->VrpManager->GetGameList();
+
+	auto it = std::find_if(gameInfo.cbegin(), gameInfo.cend(), [app](const auto& pair)
+	{
+		return pair.first.ReleaseName == app->ReleaseName;
+	});
+
+	if (it == gameInfo.end())
+	{
+		return;
+	}
+
+	context->VrpManager->DeleteGame(it->first);
+}
+
 AdbDevice** GetDeviceList(AppContext* context, int* num)
 {
 	if (context->AdbDeviceList)

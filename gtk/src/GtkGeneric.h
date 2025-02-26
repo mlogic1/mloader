@@ -21,6 +21,6 @@
 
 void ShowGenericMessageDialog(GtkWindow* parent, const std::string& message);
 
-gint ShowGenericConfirmationDialog(GtkWindow* parent, const std::string& message);
+bool ShowGenericConfirmationDialog(GtkWindow* parent, const std::string& message);
 
 #endif // GTK_GENERIC_H

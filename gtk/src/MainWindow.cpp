@@ -218,13 +218,20 @@ void MainWindow::SetupMenuBarEvents()
 	GtkMenuItem* menuItem;
 
 	menuItem = GTK_MENU_ITEM(gtk_builder_get_object(m_builder, "menubar_btn_preferences"));
-	// continue implementation of menu bar callbacks;
 	auto preferencesBtnCallback = +[](GtkWidget* widget, gpointer data)
 	{
 		GtkWindow* mainWindow = static_cast<GtkWindow*>(data);
 		ShowGenericMessageDialog(mainWindow, "Not yet implemented");
 	};
 	g_signal_connect(menuItem, "activate", G_CALLBACK(preferencesBtnCallback), m_window);
+
+	menuItem = GTK_MENU_ITEM(gtk_builder_get_object(m_builder, "menubar_btn_clear_downloads"));
+	auto clearDownloadsBtnCallback = +[](GtkWidget* widget, gpointer data)
+	{
+		MainWindow* mainWindow = static_cast<MainWindow*>(data);
+		mainWindow->OnMenuBarClearDownloadsClicked();
+	};
+	g_signal_connect(menuItem, "activate", G_CALLBACK(clearDownloadsBtnCallback), this);
 
 	menuItem = GTK_MENU_ITEM(gtk_builder_get_object(m_builder, "menubar_btn_about"));
 	auto aboutButtonCallback = +[](GtkWidget* widget, gpointer data)
@@ -463,6 +470,21 @@ void MainWindow::OnAppStatusChanged(App* app)
 void MainWindow::OnMenuBarAboutButtonClicked()
 {
 	AboutWindow aboutWindow(GTK_WINDOW(m_window), m_appContext);
+}
+
+void MainWindow::OnMenuBarClearDownloadsClicked()
+{
+	bool confirm = ShowGenericConfirmationDialog(GTK_WINDOW(m_window), "This will delete all downloaded applications from this computer. It will not uninstall any applications from connected devices.\nWould you like to continue?");
+	if (confirm)
+	{
+		for (int i = 0; i < m_numApps; ++i)
+		{
+			if (m_appList[i]->Status == AppStatus::Downloaded)
+			{
+				MLoaderDeleteApp(m_appContext, m_appList[i]);
+			}
+		}
+	}
 }
 
 void MainWindow::ClearPixBuffer()

@@ -44,6 +44,7 @@ namespace mloader
 			AppStatus GetGameStatus(const GameInfo& gameInfo) const;
 			void UpdateGameStatus(const GameInfo& gameInfo, AppStatus newStatus, int statusParam = -1);
 			void DownloadGame(const GameInfo& game);
+			void DeleteGame(const GameInfo& game);
 			std::string GetAppThumbImage(const GameInfo& game) const;
 			std::string GetAppNote(const GameInfo& game) const;
 			bool GameInstalled(const GameInfo& game) const;

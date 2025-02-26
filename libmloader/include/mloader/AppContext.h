@@ -37,6 +37,7 @@ void RefreshMetadataAsync(RefreshMetadataAsyncCompletedCallback completedCallbac
 App** GetAppList(AppContext* context, int* num);
 bool DownloadApp(AppContext* context, App* app);
 bool MLoaderInstallApp(AppContext* context, App* app, AdbDevice* device);
+void MLoaderDeleteApp(AppContext* context, App* app);
 AdbDevice** GetDeviceList(AppContext* context, int* num);
 void MLoaderSetSelectedAdbDevice(AppContext* context, AdbDevice* device);
 void SetADBDeviceListChangedCallback(AppContext* context, ADBDeviceListChangedCallback callback, void* userData = NULL);

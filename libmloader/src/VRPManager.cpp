@@ -241,6 +241,25 @@ namespace mloader
 		}
 	}
 
+	void VRPManager::DeleteGame(const GameInfo& game)
+	{
+		if (!GameInstalled(game))
+		{
+			return;
+		}
+
+		m_logger.LogInfo(LOG_NAME, "Deleting game " + std::string(game.ReleaseName) + " from downloads directory.");
+		const fs::path gameDir = m_downloadDir / game.ReleaseName;
+
+		if (fs::exists(gameDir) && fs::is_directory(gameDir))
+		{
+			if (fs::remove_all(gameDir) > 0)
+			{
+				UpdateGameStatus(game, AppStatus::NoInfo);
+			}
+		}
+	}
+
 	std::string VRPManager::GetAppThumbImage(const GameInfo& game) const
 	{
 		const fs::path metaDir = m_cacheDir / "metadata/.meta/thumbnails/";

@@ -104,7 +104,7 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <child>
-                      <object class="GtkMenuItem" id="menubar_btn_cleardownloads">
+                      <object class="GtkMenuItem" id="menubar_btn_clear_downloads">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="label" translatable="yes">Delete all downloads</property>
