@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.40.0 -->
+<interface>
+  <requires lib="gtk+" version="3.24"/>
+  <object class="GtkDialog" id="dialog_about">
+    <property name="width-request">276</property>
+    <property name="height-request">400</property>
+    <property name="can-focus">False</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="window-position">center</property>
+    <property name="destroy-with-parent">True</property>
+    <property name="type-hint">dialog</property>
+    <property name="skip-taskbar-hint">True</property>
+    <property name="gravity">center</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="about_root_box">
+        <property name="can-focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="about_button_box">
+            <property name="can-focus">False</property>
+            <property name="layout-style">end</property>
+            <child>
+              <object class="GtkButton" id="about_button_close">
+                <property name="label" translatable="yes">Close</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkFixed" id="about_fixed">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <child>
+              <object class="GtkImage" id="about_image_logo">
+                <property name="width-request">256</property>
+                <property name="height-request">256</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="resource">/mlres/icons/256x256/mloader.png</property>
+              </object>
+              <packing>
+                <property name="x">10</property>
+                <property name="y">10</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="about_label_app_name">
+                <property name="width-request">256</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">M LOADER</property>
+                <attributes>
+                  <attribute name="font-desc" value="Sans Bold 16"/>
+                </attributes>
+              </object>
+              <packing>
+                <property name="x">10</property>
+                <property name="y">265</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="about_label_app_version">
+                <property name="width-request">256</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">MLoader GTK (26.2.2025 14:10:55)
+MLoader Library v. 0.0.0</property>
+                <attributes>
+                  <attribute name="font-desc" value="Sans 10"/>
+                </attributes>
+              </object>
+              <packing>
+                <property name="x">10</property>
+                <property name="y">293</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="about_label_attribution">
+                <property name="width-request">256</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">Gear Icon made by IwitoStudio 
+Download Icon made by joalfa 
+from www.flaticon.com</property>
+                <property name="xalign">0</property>
+                <attributes>
+                  <attribute name="font-desc" value="Sans 10"/>
+                </attributes>
+              </object>
+              <packing>
+                <property name="x">10</property>
+                <property name="y">337</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="about_label_license">
+                <property name="width-request">256</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">This program comes with 
+absolutely no warranty. 
+For details see</property>
+                <attributes>
+                  <attribute name="font-desc" value="Sans 10"/>
+                </attributes>
+              </object>
+              <packing>
+                <property name="x">10</property>
+                <property name="y">415</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLinkButton" id="about_license_link">
+                <property name="label" translatable="yes">GNU General Public License, version 3 </property>
+                <property name="width-request">256</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="relief">none</property>
+                <property name="uri">https://www.gnu.org/licenses/gpl-3.0.html</property>
+              </object>
+              <packing>
+                <property name="x">10</property>
+                <property name="y">470</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

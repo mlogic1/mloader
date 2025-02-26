@@ -14,6 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #include "MainWindow.h"
+#include "AboutWindow.h"
 #include "GtkGeneric.h"
 #include <functional>
 #include <map>
@@ -24,9 +25,6 @@ static void gquit(GtkWidget* widget, gpointer data)
 {
 	gtk_main_quit();
 }
-
-// TODO: investigate the option of using this:
-// (sigc::mem_fun(*this,
 
 // The following static functions serve as a binding between GTK C api and this cpp class
 static void applist_filter_changed(GtkWidget* widget, gpointer data)
@@ -221,6 +219,28 @@ void MainWindow::SetupMenuBarEvents()
 
 	menuItem = GTK_MENU_ITEM(gtk_builder_get_object(m_builder, "menubar_btn_preferences"));
 	// continue implementation of menu bar callbacks;
+	auto preferencesBtnCallback = +[](GtkWidget* widget, gpointer data)
+	{
+		GtkWindow* mainWindow = static_cast<GtkWindow*>(data);
+		ShowGenericMessageDialog(mainWindow, "Not yet implemented");
+	};
+	g_signal_connect(menuItem, "activate", G_CALLBACK(preferencesBtnCallback), m_window);
+
+	menuItem = GTK_MENU_ITEM(gtk_builder_get_object(m_builder, "menubar_btn_about"));
+	auto aboutButtonCallback = +[](GtkWidget* widget, gpointer data)
+	{
+		MainWindow* mainWindow = static_cast<MainWindow*>(data);
+		mainWindow->OnMenuBarAboutButtonClicked();
+	};
+	g_signal_connect(menuItem, "activate", G_CALLBACK(aboutButtonCallback), m_window);
+
+	menuItem = GTK_MENU_ITEM(gtk_builder_get_object(m_builder, "menubar_btn_quit"));
+	auto quitButtonCallback = +[](GtkWidget* widget, gpointer data)
+	{
+		GtkWidget* mainWindow = static_cast<GtkWidget*>(data);
+		gtk_widget_destroy(mainWindow);
+	};
+	g_signal_connect(menuItem, "activate", G_CALLBACK(quitButtonCallback), m_window);
 }
 
 void MainWindow::RefreshAppList()
@@ -438,6 +458,11 @@ void MainWindow::OnAppStatusChanged(App* app)
 	}
 
 	RefreshInstallDownloadButtons();
+}
+
+void MainWindow::OnMenuBarAboutButtonClicked()
+{
+	AboutWindow aboutWindow(GTK_WINDOW(m_window), m_appContext);
 }
 
 void MainWindow::ClearPixBuffer()

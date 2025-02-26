@@ -19,11 +19,17 @@ set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${xml_resource_co
 add_executable(mloader-gtk	src/main.cpp
 							src/SplashWindow.cpp
 							src/MainWindow.cpp
+							src/AboutWindow.cpp
 							src/GtkGeneric.cpp
 							src/resource/mloader_gtk_resources.c
 )
+
 target_link_libraries(mloader-gtk PRIVATE 	mloader
 											PkgConfig::GTK3)
+
+string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d_%H-%M-%S")
+
+target_compile_definitions(mloader-gtk PRIVATE GTK_BUILD_TIMESTAMP="${BUILD_TIMESTAMP}")
 
 install(TARGETS mloader-gtk
 		RUNTIME DESTINATION /usr/bin)

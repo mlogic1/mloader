@@ -525,3 +525,11 @@ char* GetAppThumbImage(AppContext* context, App* app)
 	char* cpath = strdup(path.c_str());
 	return cpath;
 }
+
+char* MLoaderGetLibraryVersion()
+{
+	constexpr const int version_size = 10;
+	char* version = (char*)malloc(version_size * sizeof(char));
+	snprintf(version, version_size, "%s.%s.%s.", MLOADER_VERSION_MAJOR, MLOADER_VERSION_MINOR, MLOADER_VERSION_PATCH);
+	return version;
+}

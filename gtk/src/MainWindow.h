@@ -38,6 +38,7 @@ class MainWindow
 		void OnDownloadButtonClicked();
 		void OnInstallButtonClicked();
 		void OnAppStatusChanged(App* app);
+		void OnMenuBarAboutButtonClicked();
 
 	private:
 		void InitializeLayout();

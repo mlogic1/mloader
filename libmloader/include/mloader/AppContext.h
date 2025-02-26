@@ -46,4 +46,6 @@ void ClearAppStatusChangedCallback(AppContext* context);
 
 char* GetAppThumbImage(AppContext* context, App* app);
 
+char* MLoaderGetLibraryVersion();
+
 #endif //  APP_CONTEXT_H
