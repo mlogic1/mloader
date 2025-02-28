@@ -4,7 +4,7 @@
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkDialog" id="dialog_about">
     <property name="width-request">276</property>
-    <property name="height-request">400</property>
+    <property name="height-request">640</property>
     <property name="can-focus">False</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
@@ -138,6 +138,27 @@ For details see</property>
               <packing>
                 <property name="x">10</property>
                 <property name="y">470</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="about_label_footnote">
+                <property name="width-request">256</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">Note: Only install/sideload packages you
+have purchased or have permission to
+install/sideload. As mentioned above,
+this software comes with no warranty,
+and its author(s) are not responsible for
+any damages, loss of data, or other issues
+that may arise from its use.</property>
+                <attributes>
+                  <attribute name="font-desc" value="Sans 9"/>
+                </attributes>
+              </object>
+              <packing>
+                <property name="x">10</property>
+                <property name="y">492</property>
               </packing>
             </child>
           </object>
