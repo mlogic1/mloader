@@ -18,12 +18,10 @@
 #include <gtk/gtk.h>
 #include <string>
 
-struct AppContext;
-
 class AboutWindow
 {
 	public:
-		AboutWindow(GtkWindow* parent, AppContext* appContext);
+		AboutWindow(GtkWindow* parent);
 		~AboutWindow();
 
 	private:
@@ -33,7 +31,6 @@ class AboutWindow
 		GtkBuilder* m_builder;
 		GtkWindow* m_parent;
 		GtkWidget* m_window;
-		AppContext* m_appContext;
 
 		static constexpr const char* LAYOUT_FILE = "/mlres/layouts/layout_about.glade";
 };

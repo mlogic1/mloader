@@ -14,6 +14,7 @@ set(MLOADER_VERSION_PATCH 0)
 
 # Add the library
 add_library(mloader SHARED  src/AppContext.cpp
+							src/SAContext.cpp
 							src/VRPManager.cpp
 							src/RClone.cpp
 							src/7z.cpp

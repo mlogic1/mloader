@@ -15,68 +15,50 @@
 
 #pragma once
 
-#include <mloader/App.h>
 #include <mloader/AdbDevice.h>
 #include <gtk/gtk.h>
+#include <filesystem>
 #include <string>
 #include <vector>
 
-struct AppContext;
+namespace fs = std::filesystem;
 
-class MainWindow
+struct SAContext;
+
+class StandaloneWindow
 {
 	public:
-		MainWindow(AppContext* appContext);
-		~MainWindow();
+		StandaloneWindow(SAContext* saContext);
+		~StandaloneWindow();
 
 		// Events
-		void OnAppFilterChanged();
-		gboolean OnFilterFunction(GtkTreeModel *model, GtkTreeIter *iter);
 		void OnAdbDeviceListChanged();
 		void OnAdbDeviceSelectionChanged();
-		void OnAppSelectionChanged();
-		void OnDownloadButtonClicked();
-		void OnInstallButtonClicked();
-		void OnAppStatusChanged(App* app);
-		void OnMenuBarClearDownloadsClicked();
+		void OnDragAndDropFinish(const std::vector<fs::path>& files);
 
 	private:
 		void InitializeLayout();
+		void RefreshDeviceList();
 		void SetupCallbackEvents();
 		void SetupMenuBarEvents();
-		void RefreshAppList();
-		void RefreshDeviceList();
-		void RefreshInstallDownloadButtons();
-		void RefreshDetailsPane();
+		/*void RefreshAppList();
 
-		void ClearPixBuffer();
+		void RefreshInstallDownloadButtons();
+		void RefreshDetailsPane();*/
 
 	private:
-		AppContext* m_appContext;
-		App** m_appList = nullptr;
-		int m_numApps = 0;
-		App* m_selectedApp = nullptr;
+		SAContext* m_saContext;
 		AdbDevice** m_adbDeviceList = nullptr;
 		AdbDevice* m_selectedAdbDevice = nullptr;
 		int m_numAdbDevices = 0;
 
-		GtkBuilder* m_builder;
-		GtkWidget* m_window;
-		GtkListStore* m_mainAppTreeListStore;
 		GtkListStore* m_mainDeviceListStore;
 		GtkComboBox* m_mainDeviceListComboBox;
 		GtkEntry* m_mainDeviceListComboBoxEntry;
-		GtkEntry* m_entryFilter;
-		GtkTreeModelFilter* m_appTreeModelFilter;
-		GtkTreeView* m_mainAppTree;
-		GtkButton* m_downloadBtn;
-		GtkButton* m_installBtn;
-		GtkImage* m_imageThumbPreview;
-		GdkPixbuf* m_imageThumbBuffer = nullptr;
-		GtkImage* m_imageNotePlaceholder;
-		GdkPixbuf* m_imageNotePlaceholderBuffer = nullptr;
-		GdkPixbuf* m_imageThumbPlaceholderBuffer = nullptr;
-		GtkLabel* m_appNoteLabel;
+		GtkEntry* m_obbPackageEntry;
 
-		static constexpr const char* LAYOUT_RESOURCE = "/mlres/layouts/layout_main.glade";
+		GtkBuilder* m_builder;
+		GtkWidget* m_window;
+
+		static constexpr const char* LAYOUT_RESOURCE = "/mlres/layouts/layout_standalone.glade";
 };

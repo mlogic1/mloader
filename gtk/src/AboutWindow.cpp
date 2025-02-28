@@ -14,11 +14,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #include "AboutWindow.h"
-#include <mloader/AppContext.h>
+#include <mloader/SAContext.h>
 
-AboutWindow::AboutWindow(GtkWindow* parent, AppContext* appContext)	:
-	m_parent(parent),
-	m_appContext(appContext)
+AboutWindow::AboutWindow(GtkWindow* parent)	:
+	m_parent(parent)
 {
 	InitializeLayout();
 }

@@ -236,8 +236,8 @@ void MainWindow::SetupMenuBarEvents()
 	menuItem = GTK_MENU_ITEM(gtk_builder_get_object(m_builder, "menubar_btn_about"));
 	auto aboutButtonCallback = +[](GtkWidget* widget, gpointer data)
 	{
-		MainWindow* mainWindow = static_cast<MainWindow*>(data);
-		mainWindow->OnMenuBarAboutButtonClicked();
+		GtkWindow* window = static_cast<GtkWindow*>(data);
+		AboutWindow aboutWindow(window);
 	};
 	g_signal_connect(menuItem, "activate", G_CALLBACK(aboutButtonCallback), m_window);
 
@@ -465,11 +465,6 @@ void MainWindow::OnAppStatusChanged(App* app)
 	}
 
 	RefreshInstallDownloadButtons();
-}
-
-void MainWindow::OnMenuBarAboutButtonClicked()
-{
-	AboutWindow aboutWindow(GTK_WINDOW(m_window), m_appContext);
 }
 
 void MainWindow::OnMenuBarClearDownloadsClicked()

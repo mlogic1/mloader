@@ -20,6 +20,7 @@ add_executable(mloader-gtk	src/main.cpp
 							src/SplashWindow.cpp
 							src/MainWindow.cpp
 							src/AboutWindow.cpp
+							src/StandaloneWindow.cpp
 							src/GtkGeneric.cpp
 							src/resource/mloader_gtk_resources.c
 )
