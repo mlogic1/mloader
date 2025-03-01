@@ -116,6 +116,28 @@ namespace mloader
 		return packages;
 	}
 
+	std::string ADB::GetDeviceProperty(const AdbDevice& device, const std::string propName) const
+	{
+		std::string property;
+
+		int result = ExecShellWithCallback([&property](const std::string& package)
+		{
+			property = package;
+		},
+		m_adbToolPath, "-s", device.DeviceId, "shell", "getprop", propName.c_str());
+
+		if (result == EXIT_SUCCESS)
+		{
+			if (property.back() == '\n' || property.back() == '\r')
+			{
+				property.pop_back();
+			}
+			return property;
+		}
+
+		return "";
+	}
+
 	bool ADB::CheckAndDownloadTool()
 	{
 		const fs::path adbToolDir = m_cacheDir / "platform-tools/";

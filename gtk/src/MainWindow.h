@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include "model/DeviceDetails.h"
 #include <mloader/App.h>
 #include <mloader/AdbDevice.h>
 #include <gtk/gtk.h>
@@ -47,7 +48,8 @@ class MainWindow
 		void RefreshAppList();
 		void RefreshDeviceList();
 		void RefreshInstallDownloadButtons();
-		void RefreshDetailsPane();
+		void RefreshAppDetailsPane();
+		void RefreshDeviceDetailsPane();
 
 		void ClearPixBuffer();
 
@@ -77,6 +79,17 @@ class MainWindow
 		GdkPixbuf* m_imageNotePlaceholderBuffer = nullptr;
 		GdkPixbuf* m_imageThumbPlaceholderBuffer = nullptr;
 		GtkLabel* m_appNoteLabel;
+
+		// Details pane
+		std::vector<DeviceDetails> m_detailsObjects =
+		{
+			{	"ro.product.manufacturer",	"device_details_label_body_manufacturer",	nullptr	},
+			{	"ro.product.model",			"device_details_label_body_model", 			nullptr	},
+			{	"ro.serialno",				"device_details_label_body_serialno",		nullptr	},
+			{	"ro.build.version.release",	"device_details_label_body_androidver",		nullptr	},
+			{	"ro.build.version.sdk",		"device_details_label_body_sdkver",			nullptr	},
+			{	"ro.build.branch",			"device_details_label_body_branchver",		nullptr	}
+		};
 
 		static constexpr const char* LAYOUT_RESOURCE = "/mlres/layouts/layout_main.glade";
 };

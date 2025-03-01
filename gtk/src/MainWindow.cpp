@@ -171,11 +171,19 @@ void MainWindow::InitializeLayout()
 	m_imageThumbPreview				= GTK_IMAGE(gtk_builder_get_object(m_builder, "main_bottom_image_app_thumb"));
 	m_imageNotePlaceholder			= GTK_IMAGE(gtk_builder_get_object(m_builder, "main_bottom_image_note_placeholder"));
 	m_appNoteLabel					= GTK_LABEL(gtk_builder_get_object(m_builder, "main_bottom_label_note"));
+
+	// App details pane
 	GError* err = NULL;
 	m_imageNotePlaceholderBuffer	= gdk_pixbuf_new_from_resource_at_scale("/mlres/ui/note.png", 50, 75, true, &err);
 	m_imageThumbPlaceholderBuffer	= gdk_pixbuf_new_from_resource_at_scale("/mlres/ui/thumb.png", 75, 75, true, &err);
 	gtk_image_set_from_pixbuf(m_imageNotePlaceholder, m_imageNotePlaceholderBuffer);
 	gtk_image_set_from_pixbuf(m_imageThumbPreview, m_imageThumbPlaceholderBuffer);
+
+	// Device details pane
+	for (DeviceDetails& detail : m_detailsObjects)
+	{
+		detail.UILabel = GTK_LABEL(gtk_builder_get_object(m_builder, detail.GtkObjectName));
+	}
 
 	gtk_tree_model_filter_set_visible_func(m_appTreeModelFilter, applist_visibility_func, this, NULL);
 
@@ -338,6 +346,7 @@ void MainWindow::OnAdbDeviceSelectionChanged()
 	}
 	MLoaderSetSelectedAdbDevice(m_appContext, m_selectedAdbDevice);
 	RefreshInstallDownloadButtons();
+	RefreshDeviceDetailsPane();
 }
 
 void MainWindow::OnAppSelectionChanged()
@@ -368,10 +377,10 @@ void MainWindow::OnAppSelectionChanged()
 	}
 
 	RefreshInstallDownloadButtons();
-	RefreshDetailsPane();
+	RefreshAppDetailsPane();
 }
 
-void MainWindow::RefreshDetailsPane()
+void MainWindow::RefreshAppDetailsPane()
 {
 	if (m_selectedApp == nullptr)
 	{
@@ -402,6 +411,33 @@ void MainWindow::RefreshDetailsPane()
 		}
 
 		free(imagePath);
+	}
+}
+
+void MainWindow::RefreshDeviceDetailsPane()
+{
+	if (m_selectedAdbDevice == nullptr)
+	{
+		// clear everything
+		for (DeviceDetails& detail : m_detailsObjects)
+		{
+			gtk_label_set_text(detail.UILabel, "N/A");
+		}
+		return;
+	}
+
+	for (DeviceDetails& detail : m_detailsObjects)
+	{
+		char* value = MLoaderGetDeviceProperty(m_appContext, m_selectedAdbDevice, detail.PropertyName);
+		if (strlen(value) > 0)
+		{
+			gtk_label_set_text(detail.UILabel, value);
+		}
+		else
+		{
+			gtk_label_set_text(detail.UILabel, "N/A");
+		}
+		free(value);
 	}
 }
 

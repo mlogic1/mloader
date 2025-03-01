@@ -61,7 +61,11 @@ namespace mloader
 		std::lock_guard<std::mutex> lock(m_installQueueMutex);
 		m_selectedDevice = device;
 
-		const std::vector<std::string> installedPackages = m_adb.GetDeviceThirdPartyPackages(*device);
+		std::vector<std::string> installedPackages;
+		if(m_selectedDevice != nullptr)
+		{
+			installedPackages = m_adb.GetDeviceThirdPartyPackages(*device);
+		}
 
 		for (auto game : m_vrpManager.GetGameList())
 		{

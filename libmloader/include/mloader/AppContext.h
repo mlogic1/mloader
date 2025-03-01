@@ -39,6 +39,7 @@ bool DownloadApp(AppContext* context, App* app);
 bool MLoaderInstallApp(AppContext* context, App* app, AdbDevice* device);
 void MLoaderDeleteApp(AppContext* context, App* app);
 AdbDevice** GetDeviceList(AppContext* context, int* num);
+char* MLoaderGetDeviceProperty(AppContext* context, AdbDevice* device, const char* propertyName);
 void MLoaderSetSelectedAdbDevice(AppContext* context, AdbDevice* device);
 void SetADBDeviceListChangedCallback(AppContext* context, ADBDeviceListChangedCallback callback, void* userData = NULL);
 void ClearADBDeviceListChangedCallback(AppContext* context);

@@ -34,11 +34,12 @@ namespace mloader
 		public:
 			ADB(const std::string& cacheDir, Logger& logger, std::function<void()> AdbDeviceListChangedCallback = nullptr);
 			~ADB();
-		
+
 			std::vector<AdbDevice*> GetAdbDevices();
 			void InstallFilesToDevice(const std::string& packageName, const std::vector<fs::path>& fileList, const AdbDevice& device) const;
 			std::vector<std::string> GetDeviceThirdPartyPackages(const AdbDevice& device) const;
-		
+			std::string GetDeviceProperty(const AdbDevice& device, const std::string propName) const;
+
 		private:
 			bool CheckAndDownloadTool();
 			void StartServer();
@@ -52,12 +53,12 @@ namespace mloader
 		private:
 			fs::path m_cacheDir;
 			fs::path m_adbToolPath;	// points to adb executable
-		
+
 			std::vector<AdbDevice> m_devices;
 			std::mutex m_devicesMutex;
-		
+
 			std::function<void()> m_adbDeviceListChangedCallback;
-		
+
 			std::atomic_bool m_endBackgroundService{false};
 			std::atomic_bool m_backgroundServiceBusy{false};
 

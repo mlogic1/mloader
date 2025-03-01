@@ -16,6 +16,8 @@ rclone:
 VRPManager:
     - load json to struct
     - move findFirstFileWithExtension to some utility
+    - when checking for installed packages on the device, it should also check the package version before determining if a package is installed on the device or not
+            another thing, it should mark a package as installed even without it being downloaded, if the package is at the same version
 
 gtk/linux specific:
     - standalone sideloader

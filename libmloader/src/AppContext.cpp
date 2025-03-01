@@ -491,6 +491,17 @@ AdbDevice** GetDeviceList(AppContext* context, int* num)
 	return context->AdbDeviceList;
 }
 
+char* MLoaderGetDeviceProperty(AppContext* context, AdbDevice* device, const char* propertyName)
+{
+	if (device == NULL)
+	{
+		return strdup("");
+	}
+
+	const std::string propValue = context->Adb->GetDeviceProperty(*device, propertyName);
+	return strdup(propValue.c_str());
+}
+
 void MLoaderSetSelectedAdbDevice(AppContext* context, AdbDevice* device)
 {
 	context->QueueManager->SetSelectedAdbDevice(device);

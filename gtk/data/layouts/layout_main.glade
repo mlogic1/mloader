@@ -465,16 +465,183 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <child>
-                      <object class="GtkLabel">
-                        <property name="width-request">100</property>
-                        <property name="height-request">80</property>
+                      <object class="GtkLabel" id="device_details_label_head_manufacturer">
+                        <property name="width-request">150</property>
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">devices</property>
+                        <property name="label" translatable="yes">Manufacturer</property>
+                        <property name="xalign">0</property>
+                        <attributes>
+                          <attribute name="font-desc" value="Sans Bold 11"/>
+                        </attributes>
                       </object>
                       <packing>
-                        <property name="x">43</property>
-                        <property name="y">18</property>
+                        <property name="x">10</property>
+                        <property name="y">10</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="device_details_label_body_manufacturer">
+                        <property name="width-request">150</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">N/A</property>
+                        <property name="single-line-mode">True</property>
+                        <property name="xalign">0</property>
+                      </object>
+                      <packing>
+                        <property name="x">10</property>
+                        <property name="y">30</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="device_details_label_head_model">
+                        <property name="width-request">150</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Model</property>
+                        <property name="xalign">0</property>
+                        <attributes>
+                          <attribute name="font-desc" value="Sans Bold 11"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="x">10</property>
+                        <property name="y">60</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="device_details_label_body_model">
+                        <property name="width-request">150</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">N/A</property>
+                        <property name="single-line-mode">True</property>
+                        <property name="xalign">0</property>
+                      </object>
+                      <packing>
+                        <property name="x">10</property>
+                        <property name="y">80</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="device_details_label_head_serialno">
+                        <property name="width-request">150</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Serial number</property>
+                        <property name="xalign">0</property>
+                        <attributes>
+                          <attribute name="font-desc" value="Sans Bold 11"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="x">10</property>
+                        <property name="y">110</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="device_details_label_body_serialno">
+                        <property name="width-request">150</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">N/A</property>
+                        <property name="single-line-mode">True</property>
+                        <property name="xalign">0</property>
+                      </object>
+                      <packing>
+                        <property name="x">10</property>
+                        <property name="y">130</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="device_details_label_head_androidver">
+                        <property name="width-request">150</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Android Version</property>
+                        <property name="xalign">0</property>
+                        <attributes>
+                          <attribute name="font-desc" value="Sans Bold 11"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="x">250</property>
+                        <property name="y">10</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="device_details_label_body_androidver">
+                        <property name="width-request">150</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">N/A</property>
+                        <property name="single-line-mode">True</property>
+                        <property name="xalign">0</property>
+                      </object>
+                      <packing>
+                        <property name="x">250</property>
+                        <property name="y">30</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="device_details_label_head_sdkver">
+                        <property name="width-request">150</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">SDK Version</property>
+                        <property name="xalign">0</property>
+                        <attributes>
+                          <attribute name="font-desc" value="Sans Bold 11"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="x">250</property>
+                        <property name="y">60</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="device_details_label_body_sdkver">
+                        <property name="width-request">150</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">N/A</property>
+                        <property name="single-line-mode">True</property>
+                        <property name="xalign">0</property>
+                      </object>
+                      <packing>
+                        <property name="x">250</property>
+                        <property name="y">80</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="device_details_label_head_branchver">
+                        <property name="width-request">150</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">OS Build Details</property>
+                        <property name="xalign">0</property>
+                        <attributes>
+                          <attribute name="font-desc" value="Sans Bold 11"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="x">250</property>
+                        <property name="y">110</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="device_details_label_body_branchver">
+                        <property name="width-request">150</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">N/A</property>
+                        <property name="single-line-mode">True</property>
+                        <property name="xalign">0</property>
+                      </object>
+                      <packing>
+                        <property name="x">250</property>
+                        <property name="y">130</property>
                       </packing>
                     </child>
                   </object>
