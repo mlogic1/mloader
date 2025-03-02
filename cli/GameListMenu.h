@@ -37,4 +37,7 @@ class GameListMenu : public Menu
 		App** m_appList = nullptr;
 		int m_numApps = 0;
 		std::unordered_map<uint32_t, App*> m_optionsIndexToApp;
+	
+		static constexpr const int COL_NAME_WIDTH = 52;
+		static constexpr const int COL_SIZE_WIDTH = 10;
 };

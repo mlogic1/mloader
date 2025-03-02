@@ -15,6 +15,8 @@
 
 #include "GameListMenu.h"
 #include <mloader/AppContext.h>
+#include <iomanip>
+#include <sstream>
 #include <map>
 
 GameListMenu::GameListMenu(AppContext* appContext)
@@ -46,7 +48,6 @@ ExecuteActionResult GameListMenu::ExecuteAction(uint32_t actionIndex)
 	}
 	else
 	{
-		// Download game (this should be try catched)
 		DownloadApp(m_appContext, m_optionsIndexToApp.at(actionIndex));
 	}
 
@@ -74,7 +75,19 @@ const StringList& GameListMenu::GetOptions()
 
 	for(int i = 0; i < m_numApps; ++i)
 	{
-		m_options.emplace_back(m_appList[i]->GameName);
+		std::stringstream oss;
+		
+		if (strlen(m_appList[i]->GameName) > COL_NAME_WIDTH)
+		{
+			std::string appName = m_appList[i]->GameName;
+			oss << std::setw(COL_NAME_WIDTH) << std::left << appName.substr(0, COL_NAME_WIDTH) << "\t#";
+		}
+		else
+		{
+			oss << std::setw(COL_NAME_WIDTH) << std::left << m_appList[i]->GameName << "\t#";
+		}
+				
+		m_options.emplace_back(oss.str());
 		m_optionsIndexToApp.emplace((uint32_t)i, m_appList[i]);
 	}
 
