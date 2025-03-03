@@ -265,3 +265,7 @@ paket-files/
 __pycache__/
 *.pyc
 gtk/src/resource/mloader_gtk_resources.c
+
+# Apple
+macOS/MLoader.xcodeproj/xcuserdata
+macOS/MLoader.xcodeproj/project.xcworkspace
