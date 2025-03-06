@@ -28,26 +28,28 @@ typedef void (* RefreshMetadataAsyncCompletedCallback)(AppContext*);
 typedef void (* ADBDeviceListChangedCallback)(AppContext*, void*);
 typedef void (* AppStatusChangedCallback)(AppContext*, App*, void*);
 
-AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback = 0, const char* customCacheDir = "", const char* customDownloadDir = "");
-void CreateLoaderContextAsync(CreateLoaderContextAsyncCompletedCallback completedCallback, CreateLoaderContextStatusCallback callback = NULL, const char* customCacheDir = "", const char* customDownloadDir = "");
-void DestroyLoaderContext(AppContext* context);
+extern "C"
+{
+	AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback = 0, const char* customCacheDir = "", const char* customDownloadDir = "");
+	void CreateLoaderContextAsync(CreateLoaderContextAsyncCompletedCallback completedCallback, CreateLoaderContextStatusCallback callback = NULL, const char* customCacheDir = "", const char* customDownloadDir = "");
+	void DestroyLoaderContext(AppContext* context);
 
-void RefreshMetadata(AppContext* context);
-void RefreshMetadataAsync(RefreshMetadataAsyncCompletedCallback completedCallback, AppContext* context);
-App** GetAppList(AppContext* context, int* num);
-bool DownloadApp(AppContext* context, App* app);
-bool MLoaderInstallApp(AppContext* context, App* app, AdbDevice* device);
-void MLoaderDeleteApp(AppContext* context, App* app);
-AdbDevice** GetDeviceList(AppContext* context, int* num);
-char* MLoaderGetDeviceProperty(AppContext* context, AdbDevice* device, const char* propertyName);
-void MLoaderSetSelectedAdbDevice(AppContext* context, AdbDevice* device);
-void SetADBDeviceListChangedCallback(AppContext* context, ADBDeviceListChangedCallback callback, void* userData = NULL);
-void ClearADBDeviceListChangedCallback(AppContext* context);
-void SetAppStatusChangedCallback(AppContext* context, AppStatusChangedCallback callback, void* userData = NULL);
-void ClearAppStatusChangedCallback(AppContext* context);
+	void RefreshMetadata(AppContext* context);
+	void RefreshMetadataAsync(RefreshMetadataAsyncCompletedCallback completedCallback, AppContext* context);
+	App** GetAppList(AppContext* context, int* num);
+	bool DownloadApp(AppContext* context, App* app);
+	bool MLoaderInstallApp(AppContext* context, App* app, AdbDevice* device);
+	void MLoaderDeleteApp(AppContext* context, App* app);
+	AdbDevice** GetDeviceList(AppContext* context, int* num);
+	char* MLoaderGetDeviceProperty(AppContext* context, AdbDevice* device, const char* propertyName);
+	void MLoaderSetSelectedAdbDevice(AppContext* context, AdbDevice* device);
+	void SetADBDeviceListChangedCallback(AppContext* context, ADBDeviceListChangedCallback callback, void* userData = NULL);
+	void ClearADBDeviceListChangedCallback(AppContext* context);
+	void SetAppStatusChangedCallback(AppContext* context, AppStatusChangedCallback callback, void* userData = NULL);
+	void ClearAppStatusChangedCallback(AppContext* context);
 
-char* GetAppThumbImage(AppContext* context, App* app);
+	char* GetAppThumbImage(AppContext* context, App* app);
 
-char* MLoaderGetLibraryVersion();
-
+	char* MLoaderGetLibraryVersion();
+}
 #endif //  APP_CONTEXT_H
