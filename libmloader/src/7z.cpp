@@ -52,7 +52,7 @@ namespace mloader
 
 		if (!fs::exists(zipToolDir))
 		{
-			if (!fs::create_directories(zipToolDir))
+			if (!fs::create_directory(zipToolDir))
 			{
 				throw std::runtime_error("Unable to create directory: " + zipToolDir.string());
 			}
