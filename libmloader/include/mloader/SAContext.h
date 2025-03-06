@@ -25,16 +25,19 @@ typedef void (* CreateLoaderContextStatusCallback)(const char*);
 typedef void (* CreateSALoaderContextAsyncCompletedCallback)(SAContext*);
 typedef void (* SAADBDeviceListChangedCallback)(SAContext*, void*);
 
-const char* MLoaderSAGetErrorMessage();
-SAContext* MLoaderSACreateLoaderContext(CreateLoaderContextStatusCallback callback = 0, const char* customCacheDir = "");
-void MLoaderSACreateLoaderContextAsync(CreateSALoaderContextAsyncCompletedCallback completedCallback, CreateLoaderContextStatusCallback callback = NULL, const char* customCacheDir = "");
-void MLoaderSADestroyLoaderContext(SAContext* context);
-bool MLoaderSAInstallFile(SAContext* context, const char* apkFile, AdbDevice* device, const char* obbPackageName);
-AdbDevice** MLoaderSAGetDeviceList(SAContext* context, int* num);
-void MLoaderSASetSelectedAdbDevice(SAContext* context, AdbDevice* device);
-void MLoaderSASetADBDeviceListChangedCallback(SAContext* context, SAADBDeviceListChangedCallback callback, void* userData = NULL);
-void MLoaderSAClearADBDeviceListChangedCallback(SAContext* context);
+extern "C"
+{
+	const char* MLoaderSAGetErrorMessage();
+	SAContext* MLoaderSACreateLoaderContext(CreateLoaderContextStatusCallback callback = 0, const char* customCacheDir = "");
+	void MLoaderSACreateLoaderContextAsync(CreateSALoaderContextAsyncCompletedCallback completedCallback, CreateLoaderContextStatusCallback callback = NULL, const char* customCacheDir = "");
+	void MLoaderSADestroyLoaderContext(SAContext* context);
+	bool MLoaderSAInstallFile(SAContext* context, const char* apkFile, AdbDevice* device, const char* obbPackageName);
+	AdbDevice** MLoaderSAGetDeviceList(SAContext* context, int* num);
+	void MLoaderSASetSelectedAdbDevice(SAContext* context, AdbDevice* device);
+	void MLoaderSASetADBDeviceListChangedCallback(SAContext* context, SAADBDeviceListChangedCallback callback, void* userData = NULL);
+	void MLoaderSAClearADBDeviceListChangedCallback(SAContext* context);
 
-extern char* MLoaderGetLibraryVersion();
+	extern char* MLoaderGetLibraryVersion();
+}
 
 #endif //  STANDALONE_CONTEXT_H
