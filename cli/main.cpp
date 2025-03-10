@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
 {
 	set_terminal_mode();
 	
-	AppContext* context = CreateLoaderContext(InitializationCallbackMessage);
+	AppContext* context = CreateLoaderContext(InitializationCallbackMessage, "", "");
 	allMenus = SetupMenus(context);
 	ChangeMenu("MainMenu");
 

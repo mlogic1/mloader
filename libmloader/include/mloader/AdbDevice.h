@@ -18,14 +18,14 @@
 
 #include <string.h>
 
-enum AdbDeviceStatus
+typedef enum
 {
 	OK = 0,
 	UnAuthorized,
 	Offline,
 	NoPermissions,
 	Unknown
-};
+} AdbDeviceStatus;
 
 typedef struct 
 {

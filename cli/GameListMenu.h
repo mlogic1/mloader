@@ -17,7 +17,7 @@
 
 #include "Menu.h"
 #include <unordered_map>
-#include <mloader/App.h>
+#include <mloader/VrpApp.h>
 
 class GameListMenu : public Menu
 {
@@ -34,7 +34,7 @@ class GameListMenu : public Menu
 		StringList m_options;
 		AppContext* m_appContext;
 
-		App** m_appList = nullptr;
+		VrpApp** m_appList = nullptr;
 		int m_numApps = 0;
-		std::unordered_map<uint32_t, App*> m_optionsIndexToApp;
+		std::unordered_map<uint32_t, VrpApp*> m_optionsIndexToApp;
 };
