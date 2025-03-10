@@ -16,7 +16,7 @@
 #ifndef APP_CONTEXT_H
 #define APP_CONTEXT_H
 
-#include "App.h"
+#include "VrpApp.h"
 #include "AdbDevice.h"
 #include <stddef.h>
 
@@ -26,30 +26,35 @@ typedef void (* CreateLoaderContextStatusCallback)(const char*);
 typedef void (* CreateLoaderContextAsyncCompletedCallback)(AppContext*);
 typedef void (* RefreshMetadataAsyncCompletedCallback)(AppContext*);
 typedef void (* ADBDeviceListChangedCallback)(AppContext*, void*);
-typedef void (* AppStatusChangedCallback)(AppContext*, App*, void*);
+typedef void (* AppStatusChangedCallback)(AppContext*, VrpApp*, void*);
 
+#ifdef __cplusplus
 extern "C"
 {
-	AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback = 0, const char* customCacheDir = "", const char* customDownloadDir = "");
-	void CreateLoaderContextAsync(CreateLoaderContextAsyncCompletedCallback completedCallback, CreateLoaderContextStatusCallback callback = NULL, const char* customCacheDir = "", const char* customDownloadDir = "");
+#endif
+	AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, const char* customCacheDir, const char* customDownloadDir);
+	void CreateLoaderContextAsync(CreateLoaderContextAsyncCompletedCallback completedCallback, CreateLoaderContextStatusCallback callback, const char* customCacheDir, const char* customDownloadDir);
 	void DestroyLoaderContext(AppContext* context);
 
 	void RefreshMetadata(AppContext* context);
 	void RefreshMetadataAsync(RefreshMetadataAsyncCompletedCallback completedCallback, AppContext* context);
-	App** GetAppList(AppContext* context, int* num);
-	bool DownloadApp(AppContext* context, App* app);
-	bool MLoaderInstallApp(AppContext* context, App* app, AdbDevice* device);
-	void MLoaderDeleteApp(AppContext* context, App* app);
+	VrpApp** GetAppList(AppContext* context, int* num);
+	int DownloadApp(AppContext* context, VrpApp* app);
+	int MLoaderInstallApp(AppContext* context, VrpApp* app, AdbDevice* device);
+	void MLoaderDeleteApp(AppContext* context, VrpApp* app);
 	AdbDevice** GetDeviceList(AppContext* context, int* num);
 	char* MLoaderGetDeviceProperty(AppContext* context, AdbDevice* device, const char* propertyName);
 	void MLoaderSetSelectedAdbDevice(AppContext* context, AdbDevice* device);
-	void SetADBDeviceListChangedCallback(AppContext* context, ADBDeviceListChangedCallback callback, void* userData = NULL);
+	void SetADBDeviceListChangedCallback(AppContext* context, ADBDeviceListChangedCallback callback, void* userData);
 	void ClearADBDeviceListChangedCallback(AppContext* context);
-	void SetAppStatusChangedCallback(AppContext* context, AppStatusChangedCallback callback, void* userData = NULL);
+	void SetAppStatusChangedCallback(AppContext* context, AppStatusChangedCallback callback, void* userData);
 	void ClearAppStatusChangedCallback(AppContext* context);
 
-	char* GetAppThumbImage(AppContext* context, App* app);
+	char* GetAppThumbImage(AppContext* context, VrpApp* app);
 
 	char* MLoaderGetLibraryVersion();
+#ifdef __cplusplus
 }
+#endif
+
 #endif //  APP_CONTEXT_H

@@ -16,7 +16,7 @@
 #ifndef APP_H
 #define APP_H
 
-enum AppStatus
+typedef enum
 {
 	NoInfo = 0,	// default state (downloadable)
 	DownloadQueued,
@@ -29,7 +29,7 @@ enum AppStatus
 	Installing,
 	InstallingError,
 	Installed
-};
+} AppStatus;
 
 typedef struct
 {
@@ -46,6 +46,6 @@ typedef struct
 	int AppStatusParam;			// When downloading or extracting, progress is reported with this param, otherwise it defaults to -1
 	const char* StatusCStr;		// Formatted Status as string with param, e.g. "Downloading (19%)" or "Extracting (24%)"
 	const char* Note;
-} App;
+} VrpApp;
 
 #endif // APP_H

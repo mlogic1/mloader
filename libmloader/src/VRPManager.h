@@ -17,7 +17,7 @@
 #define MLOADER_H
 
 #include "model/GameInfo.h"
-#include <mloader/App.h>
+#include <mloader/VrpApp.h>
 #include <filesystem>
 #include <functional>
 #include <map>

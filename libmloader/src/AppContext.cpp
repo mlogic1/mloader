@@ -40,7 +40,7 @@ struct AppContext
 	mloader::QueueManager*			QueueManager;
 
 	// App list
-	App** 							AppList = nullptr;
+	VrpApp** 						AppList = nullptr;
 	AdbDevice**						AdbDeviceList = nullptr;
 
 	// callbacks
@@ -57,7 +57,7 @@ static std::string DetermineCacheDir()
 		m_cacheDir = something
 		m_downloadDir = something
 	#else
-		return "/tmp/mloader/cache";
+		return "/tmp/mloader/cache/";
 	#endif
 }
 
@@ -153,7 +153,7 @@ void OnGameInfoStatusChanged(AppContext* context, const mloader::GameInfo& gameI
 {
 	if (context->AppsStatusChangedCallback && context->AppList != nullptr)
 	{
-		App* updatedApp = nullptr;
+		VrpApp* updatedApp = nullptr;
 		for (int i = 0; i < context->VrpManager->GetGameList().size(); ++i)
 		{
 			if (context->AppList[i]->ReleaseName == gameInfo.ReleaseName)
@@ -187,8 +187,9 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 		downloadDir = customDownloadDir;
 	}
 
-	if (!fs::exists(cacheDir))
+	if (!fs::is_directory(cacheDir))
 	{
+		GenericCallback(callback, "Creating cache dir newest");
 		if (!fs::create_directories(cacheDir))
 		{
 			err_msg = "Unable to create cache directory.";
@@ -196,8 +197,9 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 		}
 	}
 
-	if (!fs::exists(downloadDir))
+	if (!fs::is_directory(downloadDir))
 	{
+		GenericCallback(callback, "Creating download dir");
 		if (!fs::create_directories(downloadDir))
 		{
 			err_msg = "Unable to create download directory.";
@@ -387,17 +389,17 @@ void RefreshMetadataAsync(RefreshMetadataAsyncCompletedCallback completedCallbac
 	}).detach();
 }
 
-App** GetAppList(AppContext* context, int* num)
+VrpApp** GetAppList(AppContext* context, int* num)
 {
 	if (context->AppList == nullptr)	// lazy load
 	{
 		const std::map<mloader::GameInfo, AppStatus>& gameInfo = context->VrpManager->GetGameList();
 		*num = gameInfo.size();
-		context->AppList = new App*[*num];
+		context->AppList = new VrpApp*[*num];
 		int i = 0;
 		for (const auto& pair : gameInfo)
 		{
-			context->AppList[i] = new App();
+			context->AppList[i] = new VrpApp();
 			context->AppList[i]->GameName 		= strdup(pair.first.GameName.c_str());
 			context->AppList[i]->ReleaseName 	= strdup(pair.first.ReleaseName.c_str());
 			context->AppList[i]->PackageName 	= strdup(pair.first.PackageName.c_str());
@@ -418,7 +420,7 @@ App** GetAppList(AppContext* context, int* num)
 	return context->AppList;
 }
 
-bool DownloadApp(AppContext* context, App* app)
+int DownloadApp(AppContext* context, VrpApp* app)
 {
 	const std::map<mloader::GameInfo, AppStatus>& gameInfo = context->VrpManager->GetGameList();
 
@@ -436,7 +438,7 @@ bool DownloadApp(AppContext* context, App* app)
 	return true;
 }
 
-bool MLoaderInstallApp(AppContext* context, App* app, AdbDevice* device)
+int MLoaderInstallApp(AppContext* context, VrpApp* app, AdbDevice* device)
 {
 	const std::map<mloader::GameInfo, AppStatus>& gameInfo = context->VrpManager->GetGameList();
 
@@ -461,7 +463,7 @@ bool MLoaderInstallApp(AppContext* context, App* app, AdbDevice* device)
 	return true;
 }
 
-void MLoaderDeleteApp(AppContext* context, App* app)
+void MLoaderDeleteApp(AppContext* context, VrpApp* app)
 {
 	const std::map<mloader::GameInfo, AppStatus>& gameInfo = context->VrpManager->GetGameList();
 
@@ -531,7 +533,7 @@ void ClearAppStatusChangedCallback(AppContext* context)
 	context->AppsStatusChangedCallbackUserData = nullptr;
 }
 
-char* GetAppThumbImage(AppContext* context, App* app)
+char* GetAppThumbImage(AppContext* context, VrpApp* app)
 {
 	const std::map<mloader::GameInfo, AppStatus>& gameInfo = context->VrpManager->GetGameList();
 
