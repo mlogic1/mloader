@@ -21,9 +21,9 @@
 
 struct DeviceDetails
 {
-    const char* PropertyName; // ADB property id
-    const char* GtkObjectName;
-    GtkLabel* UILabel;
+	const char* PropertyName; // ADB property id
+	const char* GtkObjectName;
+	GtkLabel* UILabel;
 };
 
 #endif // DEVICE_DETAILS_H

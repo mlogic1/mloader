@@ -29,7 +29,7 @@ Standalone Mode | VRP Mode
 ![](https://raw.githubusercontent.com/mlogic1/mloader/refs/heads/main/screenshots/screenshot_linux_standalone.png)  |  ![](https://raw.githubusercontent.com/mlogic1/mloader/refs/heads/main/screenshots/screenshot_linux_vrp.png)
 
 ### MacOS
-#### To be added
+![](https://raw.githubusercontent.com/mlogic1/mloader/refs/heads/main/screenshots/screenshot_mac_vrp.png)
 
 ## Usage
 
