@@ -15,23 +15,20 @@
 
 import Foundation
 
-// Constants
-// let mLoaderLibName : String = "libmloader.dylib"
-
 var mLoaderAppContextPtr: OpaquePointer? = nil
 
 class MLoaderInitializationManager : ObservableObject{
 	@Published var initStatus = ""
 }
 
-var globalInitStatus : MLoaderInitializationManager? = nil
+var mainWindowCoordinatorRef : MainWindowCoordinator? = nil
 
 @_cdecl("MLoaderInitializeCallbackFunction")
 private func createLoaderContextStatusCallback(status: UnsafePointer<CChar>?) {
 	if let status = status {
 		if let statusString = String(validatingUTF8: status){
 			DispatchQueue.main.async {
-				globalInitStatus?.initStatus = statusString
+				mainWindowCoordinatorRef?.initStatus = statusString
 			}
 		}
 	}

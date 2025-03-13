@@ -13,61 +13,86 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// some resources:
+// https://developer.apple.com/design/human-interface-guidelines/components
+
 import SwiftUI
 import Foundation
+import AppKit
 
 struct MainWindow: View {
-	
-	@State private var mloaderInitialized : Bool = false
-	
 	@State private var searchFilter: String = ""
-	// Use mLoaderAppContextPtr to interact with the library
-	
-	@State private var vrpApps: [SVrpApp] =
-	[
-	]
 	
 	private var filteredApps: [SVrpApp]
 	{
 		if searchFilter.isEmpty{
-			return vrpApps
+			return coordinator.vrpApps
 		}else{
-			return vrpApps.filter{$0.GameName.lowercased().contains(searchFilter.lowercased())}
+			return coordinator.vrpApps.filter{$0.GameName.lowercased().contains(searchFilter.lowercased())}
 		}
 	}
 	
-	@State var selectedVrpApp: SVrpApp.ID? = nil
-	
-	@ObservedObject var initManager : MLoaderInitializationManager = MLoaderInitializationManager()
-	
-	init(){
-		globalInitStatus = self.initManager
+	var selectDeviceLabel: String{
+		if coordinator.selectedAdbDevice == nil{
+			return "Select a device"
+		}else{
+			return coordinator.selectedAdbDevice!.DeviceStatusStr
+		}
 	}
 	
+	private var disableInstallButton: Bool{
+		if coordinator.selectedVrpApp == nil{
+			return true
+		}else{
+			if let selectedVrpApp = coordinator.vrpApps.first(where: { $0.id == coordinator.selectedVrpApp }) {
+				return !(selectedVrpApp.Status == Downloaded && coordinator.selectedAdbDevice?.DeviceStatus == OK)
+			} else {
+				return true
+			}
+		}
+	}
+	
+	private var disableDownloadButton: Bool{
+		if coordinator.selectedVrpApp == nil{
+			return true
+		}else{
+			if let selectedVrpApp = coordinator.vrpApps.first(where: { $0.id == coordinator.selectedVrpApp }) {
+				return  !(selectedVrpApp.Status == NoInfo)
+			}
+			return true
+		}
+	}
+	
+	@StateObject var coordinator: MainWindowCoordinator = MainWindowCoordinator()
+	
+	@State var currentPreviewImage: NSImage? = NSImage(named: "ui_thumb_preview") ?? nil
+	@State var currentNote: String = ""
+	
     var body: some View {
-		if mloaderInitialized {
+		if coordinator.mLoaderInitialized {
 			VStack {
 				HStack{
-					Menu{
-						Button("Option 1", action: OnDeviceSelectionChanged)
-						Button("Option 2", action: OnDeviceSelectionChanged)
-					} label: {
-						Label("Select a device", systemImage: "ellipsis.circle")
+					Menu(selectDeviceLabel){
+						ForEach(coordinator.adbDevices) { device in
+							Button(device.DeviceStatusStr){
+								coordinator.SetSelectedAdbDevice(selectedDevice: device)
+							}
+						}
 					}
-					.frame(width: 190.0)
+					.frame(width: 320.0)
 					Spacer(minLength: 100.0)
 					TextField("Search", text: $searchFilter)
 						.disableAutocorrection(true)
 						.border(.primary)
 						.frame(maxWidth: 200.0)
-					Button(action: Install)
-					{
+					Button(action: InstallApp){
 						Text("Install")
 					}
-					Button(action: Download)
-					{
+					.disabled(disableInstallButton)
+					Button(action: DownloadApp){
 						Text("Download")
 					}
+					.disabled(disableDownloadButton)
 				}
 				HStack(){
 					Menu{
@@ -76,31 +101,32 @@ struct MainWindow: View {
 					} label: {
 						Label("List View", systemImage: "ellipsis.circle")
 					}
+					.disabled(true)
 					.frame(width: 110.0)
 				}
-				.frame(maxWidth: .infinity, alignment: .trailing)
-				VSplitView{
-					Table(filteredApps, selection: $selectedVrpApp){
-						TableColumn("Name", value: \.GameName)
-						TableColumn("Status", value: \.StatusStr)
-							.width(65)
-						TableColumn("Release Name", value: \.ReleaseName)
-						TableColumn("Package Name", value: \.PackageName)
-						TableColumn("Version") { vrpApp in
-							Text("\(vrpApp.VersionCode)")
-						}
-						TableColumn("Last Updated", value: \.LastUpdated)
-						TableColumn("Size (MB)") { vrpApp in
-							Text("\(vrpApp.SizeMB)")
-						}
+				.frame(maxWidth: .infinity, alignment: .trailing)				
+				Table(filteredApps, selection: $coordinator.selectedVrpApp){
+					TableColumn("Name", value: \.GameName)
+						.width(min: 220, ideal: 220, max: 350)
+					TableColumn("Status", value: \.StatusStr)
+						.width(min: 120, ideal: 155, max: 175)
+					TableColumn("Release Name", value: \.ReleaseName)
+					TableColumn("Package Name", value: \.PackageName)
+					TableColumn("Version") { vrpApp in
+						let str: String = String(vrpApp.VersionCode)
+						Text(str)
 					}
-					.background(Color.red)
-					Circle()	// Replace circle with tab views
-						.fill(.yellow)
-						.frame(idealHeight: 140.0)
+					TableColumn("Last Updated", value: \.LastUpdated)
+					TableColumn("Size (MB)") { vrpApp in
+						let str: String = String(vrpApp.SizeMB)
+						Text(str)
+					}
 				}
-				.background(Color.green)
-				.frame(minWidth: 750.0, maxWidth: .infinity, minHeight: 550.0, maxHeight: .infinity)
+				.onChange(of: coordinator.selectedVrpApp){ selectedAppId in
+					UpdatePreviewImage()
+				}
+				.frame(minWidth: 750, minHeight: 250)
+				AppDeviceTabView(previewImage: $currentPreviewImage, noteStr: $currentNote, deviceDetails: $coordinator.selectedAdbDeviceDetails)
 			}
 			.onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification), perform: { output in
 					// Code to run on will terminate
@@ -111,65 +137,44 @@ struct MainWindow: View {
 		}
 		else{
 			ZStack(alignment: .bottomTrailing){
-				Image("splash_image")
-				Text(initManager.initStatus)
+				Image("ui_splash_image")
+				Text(coordinator.initStatus)
 					.foregroundColor(Color.black)
 					.padding(.horizontal, 20)
 			}
-			Button("Press to initialize", action: InitializeBtnAction)
-		}
-	}
-	
-	func OnMLoaderInitSucessful()
-	{
-		mloaderInitialized = true
-		
-		var numApps : Int32 = 0
-		var appListPtr : UnsafeMutablePointer<UnsafeMutablePointer<VrpApp>?>! = nil
-		appListPtr = GetAppList(mLoaderAppContextPtr, &numApps)
-		
-		vrpApps.removeAll()
-		
-		for i in 0..<Int(numApps){
-			if let appPointer = appListPtr[i]{
-				let vrpApp = appPointer.pointee
-				let sVrpApp = SVrpApp(GameName: Utility_StringFromCString(vrpApp.GameName),
-									  ReleaseName: Utility_StringFromCString(vrpApp.ReleaseName),
-									  PackageName: Utility_StringFromCString(vrpApp.PackageName),
-									  VersionCode: vrpApp.VersionCode,
-									  LastUpdated: Utility_StringFromCString(vrpApp.LastUpdated),
-									  SizeMB: vrpApp.SizeMB,
-									  Downloads: vrpApp.Downloads,
-									  Rating: vrpApp.Rating,
-									  RatingCount: vrpApp.RatingCount,
-									  Status: vrpApp.Status,
-									  AppStatusParam: vrpApp.AppStatusParam,
-									  StatusStr: Utility_StringFromCString(vrpApp.StatusCStr),
-									  Note: Utility_StringFromCString(vrpApp.Note))
-				vrpApps.append(sVrpApp)
+			.onAppear{
+				// TODO: it's still crashing on create_directories
+				coordinator.MLoaderInitialize()
 			}
 		}
 	}
 	
-	func OnMloaderInitFailed()
+	private func UpdatePreviewImage()
 	{
-		// TODO: display a window why and close the application
+		if let selectedVrpApp = coordinator.vrpApps.first(where: { $0.id == coordinator.selectedVrpApp }) {
+			currentPreviewImage = selectedVrpApp.previewImage
+			currentNote = selectedVrpApp.Note
+		}
+	}
+	
+	private func UpdateNote()
+	{
+		
 	}
 	
 	func OnApplicationExit()
 	{
-		CleanupGlobalMloader()
+		coordinator.MLoaderDestroy()
 	}
 	
-	func InitializeBtnAction()
+	func InstallApp()
 	{
-		// TODO: it's still crashing on create_directories
-		InitializeGlobalMloaderAsync(onSuccess: self.OnMLoaderInitSucessful, onFailure: self.OnMloaderInitFailed)
+		coordinator.MloaderInstalldAppToSelectedDevice(appId: coordinator.selectedVrpApp!)
 	}
-	
-	func RefreshAppList()
+				
+	func DownloadApp()
 	{
-		
+		coordinator.MLoaderDownloadApp(appId: coordinator.selectedVrpApp!)
 	}
 }
 
@@ -181,20 +186,5 @@ struct MainWindow_Previews: PreviewProvider {
 
 func OnViewTypeChanged()
 {
-	print("View type change")
-}
-
-func Install()
-{
-	print("Install pressed")
-}
-			
-func Download()
-{
-	print("Download pressed")
-}
-			
-func OnDeviceSelectionChanged()
-{
-	print("device changed now")
+	print("View type change: Unimplemented")
 }

@@ -13,31 +13,31 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import SwiftUI
+import Foundation
 
-@main
-struct MLoaderApp: App {
-    var body: some Scene {
-		WindowGroup{
-			MainWindow()
-				.onAppear{
-					NSWindow.allowsAutomaticWindowTabbing = false
-				}
+// S(wift)AdbDevice
+struct SAdbDevice : Identifiable{
+	let id = UUID()
+	var DeviceId: String
+	var Model: String
+	var DeviceStatus: AdbDeviceStatus
+	
+	// Additionally formatted string, used for UI to show the state
+	var DeviceStatusStr: String{
+		if DeviceStatus == UnAuthorized{
+			return DeviceId + " (Unauthorized)"
 		}
-		.commands {
-			CommandGroup(replacing: .newItem, addition: {
-				Button("Preferences") {}
-				Button("Delete all downloads") {}
-			})
-			CommandGroup(replacing: .undoRedo) { }
-			CommandGroup(replacing: .pasteboard) { }
-			CommandGroup(replacing: .saveItem) { }
-			CommandGroup(replacing: .sidebar) { }
-			CommandGroup(replacing: .textEditing) { }
-			
-			CommandGroup(replacing: .help){
-				Button("About") {} // this can probably be replaced by using the default About button
-			}
+		if DeviceStatus == Offline{
+			return DeviceId + " (Offline)"
 		}
+		if DeviceStatus == NoPermissions{
+			return DeviceId + " (No Permissions)"
+		}
+		if DeviceStatus == Unknown{
+			return DeviceId + " (Unknown State)"
+		}
+		return DeviceId
 	}
+	
+	var cAdbDevicePtr: UnsafeMutablePointer<AdbDevice>
 }

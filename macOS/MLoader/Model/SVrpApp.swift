@@ -14,6 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import Foundation
+import AppKit
 
 // S(wift)VrpApp
 struct SVrpApp : Identifiable, Equatable{
@@ -31,4 +32,8 @@ struct SVrpApp : Identifiable, Equatable{
 	var AppStatusParam: Int32
 	var StatusStr: String
 	var Note: String
+	
+	// Additional reference to the C struct
+	var cAppPtr: UnsafeMutablePointer<VrpApp>
+	var previewImage: NSImage?
 }

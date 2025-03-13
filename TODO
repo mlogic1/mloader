@@ -20,8 +20,10 @@ VRPManager:
             another thing, it should mark a package as installed even without it being downloaded, if the package is at the same version
 
 gtk/linux specific:
-    - standalone sideloader
     - make devices on device list which aren't authorized red
     - format Popularity column to 2 decimals
     - tile view
     - allow InstallingFailed state to retry installation
+
+macOS specific:
+    - use fs::create_directory (singular) when initializing the library

@@ -13,20 +13,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// some resources:
-// https://developer.apple.com/design/human-interface-guidelines/components
+import Foundation
 
-import SwiftUI
-
-struct ContentView: View {
-
-    var body: some View {
-		Text("hehe remove this")
-    }
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-    }
+// S(wift)AdbDeviceDetails
+struct SAdbDeviceDetails{
+	let PropertyName: String
+	var PropertyValue: String = ""
 }
