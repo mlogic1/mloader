@@ -15,6 +15,7 @@
 		DC28FA932D7640F6002BFE57 /* MLoaderApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28FA922D7640F6002BFE57 /* MLoaderApp.swift */; };
 		DC28FA972D7640F9002BFE57 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DC28FA962D7640F9002BFE57 /* Assets.xcassets */; };
 		DC28FA9A2D7640F9002BFE57 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DC28FA992D7640F9002BFE57 /* Preview Assets.xcassets */; };
+		DC5694FC2D843AA000D8C6EB /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = DC5694FB2D843AA000D8C6EB /* Credits.rtf */; };
 		DC9A75A02D805AFC00A7CBD2 /* AppDeviceTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9A759F2D805AFC00A7CBD2 /* AppDeviceTabView.swift */; };
 		DC9A75A22D8070D400A7CBD2 /* SAdbDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9A75A12D8070D400A7CBD2 /* SAdbDevice.swift */; };
 		DC9A75A52D80FC4900A7CBD2 /* MainWindowCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9A75A42D80FC4900A7CBD2 /* MainWindowCoordinator.swift */; };
@@ -63,6 +64,7 @@
 		DC28FA962D7640F9002BFE57 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DC28FA992D7640F9002BFE57 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		DC28FA9B2D7640F9002BFE57 /* MLoader.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MLoader.entitlements; sourceTree = "<group>"; };
+		DC5694FB2D843AA000D8C6EB /* Credits.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 		DC9A759F2D805AFC00A7CBD2 /* AppDeviceTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDeviceTabView.swift; sourceTree = "<group>"; };
 		DC9A75A12D8070D400A7CBD2 /* SAdbDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SAdbDevice.swift; sourceTree = "<group>"; };
 		DC9A75A42D80FC4900A7CBD2 /* MainWindowCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowCoordinator.swift; sourceTree = "<group>"; };
@@ -156,6 +158,7 @@
 				DC28FA962D7640F9002BFE57 /* Assets.xcassets */,
 				DC28FA9B2D7640F9002BFE57 /* MLoader.entitlements */,
 				DC28FA982D7640F9002BFE57 /* Preview Content */,
+				DC5694FB2D843AA000D8C6EB /* Credits.rtf */,
 			);
 			path = MLoader;
 			sourceTree = "<group>";
@@ -269,6 +272,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DC28FA9A2D7640F9002BFE57 /* Preview Assets.xcassets in Resources */,
+				DC5694FC2D843AA000D8C6EB /* Credits.rtf in Resources */,
 				DC28FA972D7640F9002BFE57 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -429,7 +433,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"MLoader/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = MLoader;
+				INFOPLIST_KEY_CFBundleDisplayName = "M Loader";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -460,7 +464,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"MLoader/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = MLoader;
+				INFOPLIST_KEY_CFBundleDisplayName = "M Loader";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
