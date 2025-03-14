@@ -9,6 +9,7 @@ general:
     - if there's not enough space for a download, it will fail but mark the application status as Downloaded. It should be Download error
     - make MLoaderDownloads folder hidden by default in home dir, and also lowercase
     - instead of single callbacks, use observer pattern, so any object can subscribe to any event
+    - adding user data (void*) parameter to initialize callbacks would be very helpful on macOS to avoid hacks during initialization
 
 rclone:
     - should have report progress and complete/fail callbacks
