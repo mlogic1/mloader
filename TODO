@@ -4,7 +4,7 @@ general:
     - move /cli.cpp/h files to /cli/src
     - by default, do not build the cli tool. Set it behind a cmake variable
     - implement utility functions:
-                            function to calculate md5
+                            function to calculate md5 (use openssl)
     - on cli macos, when running a first time boot, it doesn't properly initialize ADB
     - if there's not enough space for a download, it will fail but mark the application status as Downloaded. It should be Download error
     - make MLoaderDownloads folder hidden by default in home dir, and also lowercase
@@ -26,7 +26,10 @@ gtk/linux specific:
     - allow InstallingFailed state to retry installation
     - gtk make fails on fresh generate because src/resource/mloader_gtk_resources.c is missing (probably just making a dummy file is going to fix this)
     - on manjaro the initialization label on splash window was empty the entire time and the window was not centered
+    - FAQ Menu which explains how to have a ready device for sideloading. Also a button next to Select a device comboBox
 
 macOS specific:
     - use fs::create_directory (singular) when initializing the library
     - not all AppIcons have a proper size
+    - FAQ Menu which explains how to have a ready device for sideloading. Also a button next to Select a device comboBox
+    - Tile view
