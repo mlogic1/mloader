@@ -29,3 +29,4 @@ gtk/linux specific:
 
 macOS specific:
     - use fs::create_directory (singular) when initializing the library
+    - not all AppIcons have a proper size

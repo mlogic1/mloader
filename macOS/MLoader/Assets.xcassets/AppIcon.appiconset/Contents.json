@@ -1,41 +1,49 @@
 {
   "images" : [
     {
+      "filename" : "mloader 4.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "16x16"
     },
     {
+      "filename" : "mloader 5.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "16x16"
     },
     {
+      "filename" : "mloader 3.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "32x32"
     },
     {
+      "filename" : "mloader 2.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "32x32"
     },
     {
+      "filename" : "mloader 7.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "128x128"
     },
     {
+      "filename" : "mloader 1.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "128x128"
     },
     {
+      "filename" : "mloader.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "256x256"
     },
     {
+      "filename" : "mloader 6.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "256x256"
