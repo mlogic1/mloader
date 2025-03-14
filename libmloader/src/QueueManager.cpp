@@ -14,6 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #include "QueueManager.h"
+#include <algorithm>
 
 namespace mloader
 {
@@ -115,7 +116,7 @@ namespace mloader
 		while(m_running)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
-			
+
 			// maybe it would be good to check m_running again here, on rare occasions it crashes when trying to call lock when the application is exiting (or alternatively try sleep at the end of the loop)
 
 			m_downloadQueueMutex.lock();
@@ -141,7 +142,7 @@ namespace mloader
 		while(m_running)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
-			
+
 			// maybe it would be good to check m_running again here, on rare occasions it crashes when trying to call lock when the application is exiting (or alternatively try sleep at the end of the loop)
 
 			if (m_selectedDevice == nullptr)

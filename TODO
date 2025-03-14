@@ -24,6 +24,8 @@ gtk/linux specific:
     - format Popularity column to 2 decimals
     - tile view
     - allow InstallingFailed state to retry installation
+    - gtk make fails on fresh generate because src/resource/mloader_gtk_resources.c is missing (probably just making a dummy file is going to fix this)
+    - on manjaro the initialization label on splash window was empty the entire time and the window was not centered
 
 macOS specific:
     - use fs::create_directory (singular) when initializing the library

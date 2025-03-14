@@ -22,6 +22,9 @@ struct MLoaderApp: App {
 			MainWindow()
 				.onAppear{
 					NSWindow.allowsAutomaticWindowTabbing = false
+					if let window = NSApplication.shared.windows.first {
+						window.center()
+					}
 				}
 		}
 		.commands {
