@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		DC13382E2D7EC79300DBE29D /* GlobalInitialize.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC13382D2D7EC79300DBE29D /* GlobalInitialize.swift */; };
 		DC1338312D7EE7E700DBE29D /* SVrpApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC1338302D7EE7E700DBE29D /* SVrpApp.swift */; };
 		DC1338342D7EE85D00DBE29D /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC1338332D7EE85D00DBE29D /* Utility.swift */; };
 		DC13384D2D7EF5B300DBE29D /* libmloader.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = DC13384A2D7EF54700DBE29D /* libmloader.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -54,7 +53,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		DC13382D2D7EC79300DBE29D /* GlobalInitialize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalInitialize.swift; sourceTree = "<group>"; };
 		DC1338302D7EE7E700DBE29D /* SVrpApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SVrpApp.swift; sourceTree = "<group>"; };
 		DC1338332D7EE85D00DBE29D /* Utility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
 		DC1338422D7EF54700DBE29D /* libmloader.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libmloader.xcodeproj; path = ../build/libmloader/libmloader.xcodeproj; sourceTree = "<group>"; };
@@ -87,7 +85,6 @@
 		DC13382A2D7EC4EE00DBE29D /* LibFunctions */ = {
 			isa = PBXGroup;
 			children = (
-				DC13382D2D7EC79300DBE29D /* GlobalInitialize.swift */,
 				DCA2CBEE2D7F1E49005D2C7D /* MLoader-Bridging-Header.h */,
 			);
 			path = LibFunctions;
@@ -291,7 +288,6 @@
 				DC9A75A02D805AFC00A7CBD2 /* AppDeviceTabView.swift in Sources */,
 				DC9A75A72D83226F00A7CBD2 /* SAdbDeviceDetails.swift in Sources */,
 				DC20110B2D784679005FC4D2 /* MainWindow.swift in Sources */,
-				DC13382E2D7EC79300DBE29D /* GlobalInitialize.swift in Sources */,
 				DC28FA932D7640F6002BFE57 /* MLoaderApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

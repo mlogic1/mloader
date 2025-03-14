@@ -28,17 +28,17 @@ SplashWindow::SplashWindow()
 
 SplashWindow::~SplashWindow()
 {
-    if (m_window)
-    {
-        gtk_widget_destroy(m_window);
-        m_window = nullptr;
-    }
+	if (m_window)
+	{
+		gtk_widget_destroy(m_window);
+		m_window = nullptr;
+	}
 
-    if (m_builder)
-    {
-        g_object_unref(G_OBJECT(m_builder));
-        m_builder = nullptr;
-    }
+	if (m_builder)
+	{
+		g_object_unref(G_OBJECT(m_builder));
+		m_builder = nullptr;
+	}
 }
 
 void SplashWindow::UpdateStatusLabelText(const char* text)

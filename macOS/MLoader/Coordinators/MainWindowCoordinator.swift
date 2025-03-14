@@ -17,12 +17,15 @@ import Foundation
 import SwiftUI
 import AppKit
 
+var mainWindowCoordinatorRef : MainWindowCoordinator? = nil	// to be fixed, this variable is used during initialization to receive the status messages
+
 class MainWindowCoordinator: ObservableObject{
 
 	@Published var initStatus = ""
 	@Published var mLoaderInitialized : Bool = false
 	
 	// Use mLoaderAppContextPtr to interact with the library
+	private var mLoaderAppContextPtr: OpaquePointer?
 	
 	@Published var vrpApps: [SVrpApp] =
 	[
@@ -122,10 +125,10 @@ class MainWindowCoordinator: ObservableObject{
 		}
 	}
 	
-	private func OnMLoaderInitSucessful()
+	private func OnMLoaderInitSucessful(mloaderContext: OpaquePointer?)
 	{
 		mLoaderInitialized = true
-		
+		mLoaderAppContextPtr = mloaderContext
 		SetupCallbackEvents()
 		RefreshAppList()
 		RefreshDeviceList()
@@ -181,12 +184,14 @@ class MainWindowCoordinator: ObservableObject{
 	
 	func MLoaderInitialize()
 	{
-		InitializeGlobalMloaderAsync(onSuccess: self.OnMLoaderInitSucessful, onFailure: self.OnMloaderInitFailed)
+		InitializeMloaderAsync(onSuccess: self.OnMLoaderInitSucessful, onFailure: self.OnMloaderInitFailed)
 	}
 	
 	func MLoaderDestroy()
 	{
-		CleanupGlobalMloader()
+		if (mLoaderAppContextPtr != nil){
+			DestroyLoaderContext(mLoaderAppContextPtr)
+		}
 	}
 	
 	func OnAdbDeviceListChanged()
@@ -208,6 +213,46 @@ class MainWindowCoordinator: ObservableObject{
 				vrpApps[index!].Status = appPtr!.Status
 				vrpApps[index!].StatusStr = Utility_StringFromCString(appPtr!.StatusCStr)
 				vrpApps[index!].AppStatusParam = appPtr!.AppStatusParam
+			}
+		}
+	}
+
+	private func InitializeMloaderAsync(onSuccess: @escaping (OpaquePointer?) -> Void, onFailure: @escaping () -> Void) -> Void
+	{
+		var error : Bool = false
+		DispatchQueue.global(qos: .userInitiated).async {
+			
+			// Initialize loader
+			// Convert Swift strings to C strings
+			let emptyStr = "" // Replace with actual value if needed
+			let emptyStrCStr = emptyStr.cString(using: .utf8)
+			
+			let mLoaderAppContextPtr: OpaquePointer? = CreateLoaderContext(createLoaderContextStatusCallback, emptyStrCStr, emptyStrCStr)
+
+			if mLoaderAppContextPtr != nil {
+				print("AppContext created successfully")
+			} else {
+				print("Failed to create AppContext")
+				error = true
+			}
+			
+			DispatchQueue.main.async {
+				if (error){
+					onFailure()
+				}else{
+					onSuccess(mLoaderAppContextPtr)
+				}
+			}
+		}
+	}
+}
+
+@_cdecl("MLoaderInitializeCallbackFunction")
+private func createLoaderContextStatusCallback(status: UnsafePointer<CChar>?) {
+	if let status = status {
+		if let statusString = String(validatingUTF8: status){
+			DispatchQueue.main.async {
+				mainWindowCoordinatorRef?.initStatus = statusString
 			}
 		}
 	}
