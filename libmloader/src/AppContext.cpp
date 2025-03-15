@@ -40,8 +40,8 @@ struct AppContext
 	mloader::QueueManager*			QueueManager;
 
 	// App list
-	VrpApp** 						AppList = nullptr;
-	AdbDevice**						AdbDeviceList = nullptr;
+	VrpApp** 						AppList 								= nullptr;
+	AdbDevice**						AdbDeviceList 							= nullptr;
 
 	// callbacks
 	ADBDeviceListChangedCallback	AdbDeviceListChangedCallback			= nullptr;
@@ -187,24 +187,22 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 		downloadDir = customDownloadDir;
 	}
 
-	if (!fs::is_directory(cacheDir))
+	try
 	{
-		GenericCallback(callback, "Creating cache dir newest");
-		if (!fs::create_directories(cacheDir))
+		if (!fs::is_directory(cacheDir))
 		{
-			err_msg = "Unable to create cache directory.";
-			return NULL;
+			fs::create_directories(cacheDir);
+		}
+
+		if (!fs::is_directory(downloadDir))
+		{
+			fs::create_directories(downloadDir);
 		}
 	}
-
-	if (!fs::is_directory(downloadDir))
+	catch(const fs::filesystem_error& err)
 	{
-		GenericCallback(callback, "Creating download dir");
-		if (!fs::create_directories(downloadDir))
-		{
-			err_msg = "Unable to create download directory.";
-			return NULL;
-		}
+		err_msg = err.what();
+		return nullptr;
 	}
 
 	AppContext* appContext = new AppContext();
