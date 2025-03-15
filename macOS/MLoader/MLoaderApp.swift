@@ -17,6 +17,8 @@ import SwiftUI
 
 @main
 struct MLoaderApp: App {
+	@NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+	
     var body: some Scene {
 		WindowGroup{
 			MainWindow()
@@ -37,10 +39,13 @@ struct MLoaderApp: App {
 			CommandGroup(replacing: .saveItem) { }
 			CommandGroup(replacing: .sidebar) { }
 			CommandGroup(replacing: .textEditing) { }
-			
-			CommandGroup(replacing: .help){
-				Button("About") {} // this can probably be replaced by using the default About button
-			}
 		}
+	}
+}
+
+class AppDelegate: NSObject, NSApplicationDelegate {
+	func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+		// Return true so the app terminates after the last window is closed
+		return true
 	}
 }

@@ -24,6 +24,10 @@ class MainWindowCoordinator: ObservableObject{
 	@Published var initStatus = ""
 	@Published var mLoaderInitialized : Bool = false
 	
+	// in case of failed initialization
+	@Published var mLoaderInitializationFailed : Bool = false
+	
+	
 	// Use mLoaderAppContextPtr to interact with the library
 	private var mLoaderAppContextPtr: OpaquePointer?
 	
@@ -134,9 +138,16 @@ class MainWindowCoordinator: ObservableObject{
 		RefreshDeviceList()
 	}
 	
+	func GetMLoaderLastErrorMessage() -> String
+	{
+		let cStrReason = MLoaderGetErrorMessage()
+		let mLoaderInitializationFailedReason = Utility_StringFromCString(cStrReason)
+		return mLoaderInitializationFailedReason
+	}
+	
 	private func OnMloaderInitFailed()
 	{
-		// TODO: display a window why and close the application
+		mLoaderInitializationFailed = true
 	}
 	
 	private func LoadImageFromDisk(imageFile: String) -> NSImage? {

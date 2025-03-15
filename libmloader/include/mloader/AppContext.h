@@ -52,6 +52,7 @@ extern "C"
 
 	char* GetAppThumbImage(AppContext* context, VrpApp* app);
 
+	const char* MLoaderGetErrorMessage();
 	char* MLoaderGetLibraryVersion();
 #ifdef __cplusplus
 }

@@ -22,6 +22,7 @@ import AppKit
 
 struct MainWindow: View {
 	@State private var searchFilter: String = ""
+	@State private var showFAQ: Bool = false
 	
 	private var filteredApps: [SVrpApp]
 	{
@@ -80,6 +81,12 @@ struct MainWindow: View {
 						}
 					}
 					.frame(width: 320.0)
+					Button(action: ShowFAQDialog){
+						Image(systemName: "questionmark.circle")
+					}
+					.sheet(isPresented: $showFAQ){
+						FAQDialogView()
+					}
 					Spacer(minLength: 100.0)
 					TextField("Search", text: $searchFilter)
 						.disableAutocorrection(true)
@@ -143,8 +150,14 @@ struct MainWindow: View {
 					.padding(.horizontal, 20)
 			}
 			.onAppear{
-				// TODO: it's still crashing on create_directories
 				coordinator.MLoaderInitialize()
+			}
+			.alert("MLoader failed to start", isPresented: $coordinator.mLoaderInitializationFailed){
+				Button("Ok", role: .cancel) {
+					NSApplication.shared.terminate(nil)
+				}
+			} message: {
+				Text(coordinator.GetMLoaderLastErrorMessage())
 			}
 		}
 	}
@@ -157,9 +170,9 @@ struct MainWindow: View {
 		}
 	}
 	
-	private func UpdateNote()
+	private func ShowFAQDialog()
 	{
-		
+		showFAQ = true
 	}
 	
 	func OnApplicationExit()

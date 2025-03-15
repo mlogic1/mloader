@@ -30,7 +30,5 @@ gtk/linux specific:
     - FAQ Menu which explains how to have a ready device for sideloading. Also a button next to Select a device comboBox
 
 macOS specific:
-    - use fs::create_directory (singular) when initializing the library
     - not all AppIcons have a proper size
-    - FAQ Menu which explains how to have a ready device for sideloading. Also a button next to Select a device comboBox
     - Tile view

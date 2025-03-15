@@ -75,7 +75,7 @@ static std::string DetermineDownloadDir()
 
 static const char* err_msg;
 
-static const char* GetErrorMessage()
+const char* MLoaderGetErrorMessage()
 {
 	return err_msg;
 }
