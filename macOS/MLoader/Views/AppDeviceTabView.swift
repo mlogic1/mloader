@@ -20,13 +20,17 @@ struct AppDeviceTabView: View {
 	@Binding var previewImage: NSImage?
 	@Binding var noteStr: String
 	@Binding var deviceDetails: [SAdbDeviceDetails]
+	@Binding var showAppDetails: Bool
 	
     var body: some View {
 		TabView(){
-			AppDetailsTabView(previewImage: $previewImage, noteStr: $noteStr)
-				.tabItem(){
-					Text("App details")
-				}
+			if showAppDetails{
+				AppDetailsTabView(previewImage: $previewImage, noteStr: $noteStr)
+					.tabItem(){
+						Text("App details")
+					}
+			}
+			
 			DeviceDetailsTabView(deviceDetails: $deviceDetails)
 				.tabItem(){
 					Text("Device details")
@@ -121,8 +125,9 @@ struct AppDeviceTabView_Previews: PreviewProvider {
 	@State static var staticPreview: NSImage? = NSImage(named: "ui_thumb_preview") ?? NSImage()
 	@State static var notePreview: String = ""
 	@State static var deviceDetails: [SAdbDeviceDetails] = []
+	@State static var showAppDetails: Bool = true
 	
     static var previews: some View {
-		AppDeviceTabView(previewImage: $staticPreview, noteStr: $notePreview, deviceDetails: $deviceDetails)
+		AppDeviceTabView(previewImage: $staticPreview, noteStr: $notePreview, deviceDetails: $deviceDetails, showAppDetails: $showAppDetails)
     }
 }

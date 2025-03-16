@@ -32,8 +32,8 @@ struct SVrpApp : Identifiable, Equatable{
 	var AppStatusParam: Int32
 	var StatusStr: String
 	var Note: String
-	
+
 	// Additional reference to the C struct
-	var cAppPtr: UnsafeMutablePointer<VrpApp>
+	var cAppPtr: UnsafeMutablePointer<VrpApp>?
 	var previewImage: NSImage?
 }

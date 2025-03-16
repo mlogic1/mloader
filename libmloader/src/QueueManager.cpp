@@ -33,6 +33,7 @@ namespace mloader
 
 	QueueManager::~QueueManager()
 	{
+		// switch to joinable threads
 		ClearDownloadQueue();
 		ClearInstallQueue();
 		m_running = false;

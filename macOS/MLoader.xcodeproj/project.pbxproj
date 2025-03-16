@@ -12,6 +12,8 @@
 		DC13384D2D7EF5B300DBE29D /* libmloader.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = DC13384A2D7EF54700DBE29D /* libmloader.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		DC20110B2D784679005FC4D2 /* MainWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC20110A2D784679005FC4D2 /* MainWindow.swift */; };
 		DC26C9A92D85BEE700780E92 /* FAQDialogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC26C9A82D85BEE700780E92 /* FAQDialogView.swift */; };
+		DC26C9B42D87123000780E92 /* VrpAppsGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC26C9B32D87123000780E92 /* VrpAppsGridView.swift */; };
+		DC26C9B62D8714C700780E92 /* VrpAppsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC26C9B52D8714C700780E92 /* VrpAppsListView.swift */; };
 		DC28FA932D7640F6002BFE57 /* MLoaderApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28FA922D7640F6002BFE57 /* MLoaderApp.swift */; };
 		DC28FA972D7640F9002BFE57 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DC28FA962D7640F9002BFE57 /* Assets.xcassets */; };
 		DC28FA9A2D7640F9002BFE57 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DC28FA992D7640F9002BFE57 /* Preview Assets.xcassets */; };
@@ -59,6 +61,8 @@
 		DC1338422D7EF54700DBE29D /* libmloader.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libmloader.xcodeproj; path = ../build/libmloader/libmloader.xcodeproj; sourceTree = "<group>"; };
 		DC20110A2D784679005FC4D2 /* MainWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindow.swift; sourceTree = "<group>"; };
 		DC26C9A82D85BEE700780E92 /* FAQDialogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FAQDialogView.swift; sourceTree = "<group>"; };
+		DC26C9B32D87123000780E92 /* VrpAppsGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VrpAppsGridView.swift; sourceTree = "<group>"; };
+		DC26C9B52D8714C700780E92 /* VrpAppsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VrpAppsListView.swift; sourceTree = "<group>"; };
 		DC28FA8F2D7640F6002BFE57 /* MLoader.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MLoader.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC28FA922D7640F6002BFE57 /* MLoaderApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MLoaderApp.swift; sourceTree = "<group>"; };
 		DC28FA962D7640F9002BFE57 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -175,6 +179,8 @@
 			children = (
 				DC9A759F2D805AFC00A7CBD2 /* AppDeviceTabView.swift */,
 				DC26C9A82D85BEE700780E92 /* FAQDialogView.swift */,
+				DC26C9B32D87123000780E92 /* VrpAppsGridView.swift */,
+				DC26C9B52D8714C700780E92 /* VrpAppsListView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -285,6 +291,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DC1338312D7EE7E700DBE29D /* SVrpApp.swift in Sources */,
+				DC26C9B62D8714C700780E92 /* VrpAppsListView.swift in Sources */,
 				DC9A75A22D8070D400A7CBD2 /* SAdbDevice.swift in Sources */,
 				DC9A75A52D80FC4900A7CBD2 /* MainWindowCoordinator.swift in Sources */,
 				DC1338342D7EE85D00DBE29D /* Utility.swift in Sources */,
@@ -293,6 +300,7 @@
 				DC9A75A72D83226F00A7CBD2 /* SAdbDeviceDetails.swift in Sources */,
 				DC20110B2D784679005FC4D2 /* MainWindow.swift in Sources */,
 				DC28FA932D7640F6002BFE57 /* MLoaderApp.swift in Sources */,
+				DC26C9B42D87123000780E92 /* VrpAppsGridView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

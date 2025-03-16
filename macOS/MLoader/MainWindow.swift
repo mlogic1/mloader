@@ -23,6 +23,13 @@ import AppKit
 struct MainWindow: View {
 	@State private var searchFilter: String = ""
 	@State private var showFAQ: Bool = false
+	@State private var showListView: Bool = true
+	@State private var viewTypeText: String = "List View"
+	@State var selectedVrpApp: SVrpApp.ID? = nil
+	@State var currentPreviewImage: NSImage? = NSImage(named: "ui_thumb_preview") ?? nil
+	@State var currentNote: String = ""
+	
+	@StateObject var coordinator: MainWindowCoordinator = MainWindowCoordinator()
 	
 	private var filteredApps: [SVrpApp]
 	{
@@ -42,10 +49,10 @@ struct MainWindow: View {
 	}
 	
 	private var disableInstallButton: Bool{
-		if coordinator.selectedVrpApp == nil{
+		if selectedVrpApp == nil{
 			return true
 		}else{
-			if let selectedVrpApp = coordinator.vrpApps.first(where: { $0.id == coordinator.selectedVrpApp }) {
+			if let selectedVrpApp = coordinator.vrpApps.first(where: { $0.id == selectedVrpApp }) {
 				return !(selectedVrpApp.Status == Downloaded && coordinator.selectedAdbDevice?.DeviceStatus == OK)
 			} else {
 				return true
@@ -54,20 +61,15 @@ struct MainWindow: View {
 	}
 	
 	private var disableDownloadButton: Bool{
-		if coordinator.selectedVrpApp == nil{
+		if selectedVrpApp == nil{
 			return true
 		}else{
-			if let selectedVrpApp = coordinator.vrpApps.first(where: { $0.id == coordinator.selectedVrpApp }) {
+			if let selectedVrpApp = coordinator.vrpApps.first(where: { $0.id == selectedVrpApp }) {
 				return  !(selectedVrpApp.Status == NoInfo)
 			}
 			return true
 		}
 	}
-	
-	@StateObject var coordinator: MainWindowCoordinator = MainWindowCoordinator()
-	
-	@State var currentPreviewImage: NSImage? = NSImage(named: "ui_thumb_preview") ?? nil
-	@State var currentNote: String = ""
 	
     var body: some View {
 		if coordinator.mLoaderInitialized {
@@ -92,48 +94,49 @@ struct MainWindow: View {
 						.disableAutocorrection(true)
 						.border(.primary)
 						.frame(maxWidth: 200.0)
-					Button(action: InstallApp){
-						Text("Install")
+					if showListView{
+						Button(action: InstallApp){
+							Text("Install")
+						}
+						.disabled(disableInstallButton)
+						Button(action: DownloadApp){
+							Text("Download")
+						}
+						.disabled(disableDownloadButton)
 					}
-					.disabled(disableInstallButton)
-					Button(action: DownloadApp){
-						Text("Download")
-					}
-					.disabled(disableDownloadButton)
 				}
 				HStack(){
 					Menu{
-						Button("List View", action: OnViewTypeChanged)
-						Button("Tile View", action: OnViewTypeChanged)
+						Button("List View"){
+							OnViewTypeChanged(showListViewType: true)
+						}
+						Button("Grid View"){
+							OnViewTypeChanged(showListViewType:false)
+						}
 					} label: {
-						Label("List View", systemImage: "ellipsis.circle")
+						Label(viewTypeText, systemImage: "ellipsis.circle")
 					}
-					.disabled(true)
 					.frame(width: 110.0)
 				}
-				.frame(maxWidth: .infinity, alignment: .trailing)				
-				Table(filteredApps, selection: $coordinator.selectedVrpApp){
-					TableColumn("Name", value: \.GameName)
-						.width(min: 220, ideal: 220, max: 350)
-					TableColumn("Status", value: \.StatusStr)
-						.width(min: 120, ideal: 155, max: 175)
-					TableColumn("Release Name", value: \.ReleaseName)
-					TableColumn("Package Name", value: \.PackageName)
-					TableColumn("Version") { vrpApp in
-						let str: String = String(vrpApp.VersionCode)
-						Text(str)
-					}
-					TableColumn("Last Updated", value: \.LastUpdated)
-					TableColumn("Size (MB)") { vrpApp in
-						let str: String = String(vrpApp.SizeMB)
-						Text(str)
-					}
+				.frame(maxWidth: .infinity, alignment: .trailing)
+				if showListView {
+					VrpAppsListView(selectedVrpApp: $selectedVrpApp, vrpApps: filteredApps)
+						.frame(minWidth: 750, minHeight: 350)
+						.onChange(of: selectedVrpApp) { selectedAppId in
+							UpdatePreviewImage()
+						}
+				}else{
+					VrpAppsGridView(vrpApps: filteredApps, selectedAdbDevice: $coordinator.selectedAdbDevice,
+						onButtonDownloadAction: { vrpApp in
+							coordinator.MLoaderDownloadApp(appId: vrpApp.id)
+						},
+						onButtonInstallAction: { vrpApp in
+							coordinator.MloaderInstalldAppToSelectedDevice(appId: vrpApp.id)
+						})
+						.frame(minWidth: 750, minHeight: 350)
 				}
-				.onChange(of: coordinator.selectedVrpApp){ selectedAppId in
-					UpdatePreviewImage()
-				}
-				.frame(minWidth: 750, minHeight: 250)
-				AppDeviceTabView(previewImage: $currentPreviewImage, noteStr: $currentNote, deviceDetails: $coordinator.selectedAdbDeviceDetails)
+
+				AppDeviceTabView(previewImage: $currentPreviewImage, noteStr: $currentNote, deviceDetails: $coordinator.selectedAdbDeviceDetails, showAppDetails: $showListView)
 			}
 			.onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification), perform: { output in
 					// Code to run on will terminate
@@ -164,7 +167,7 @@ struct MainWindow: View {
 	
 	private func UpdatePreviewImage()
 	{
-		if let selectedVrpApp = coordinator.vrpApps.first(where: { $0.id == coordinator.selectedVrpApp }) {
+		if let selectedVrpApp = coordinator.vrpApps.first(where: { $0.id == selectedVrpApp }) {
 			currentPreviewImage = selectedVrpApp.previewImage
 			currentNote = selectedVrpApp.Note
 		}
@@ -182,12 +185,22 @@ struct MainWindow: View {
 	
 	func InstallApp()
 	{
-		coordinator.MloaderInstalldAppToSelectedDevice(appId: coordinator.selectedVrpApp!)
+		coordinator.MloaderInstalldAppToSelectedDevice(appId: selectedVrpApp!)
 	}
 				
 	func DownloadApp()
 	{
-		coordinator.MLoaderDownloadApp(appId: coordinator.selectedVrpApp!)
+		coordinator.MLoaderDownloadApp(appId: selectedVrpApp!)
+	}
+	
+	private func OnViewTypeChanged(showListViewType: Bool)
+	{
+		showListView = showListViewType
+		if showListView{
+			viewTypeText = "List View"
+		}else{
+			viewTypeText = "Grid View"
+		}
 	}
 }
 
@@ -195,9 +208,4 @@ struct MainWindow_Previews: PreviewProvider {
     static var previews: some View {
         MainWindow()
     }
-}
-
-func OnViewTypeChanged()
-{
-	print("View type change: Unimplemented")
 }

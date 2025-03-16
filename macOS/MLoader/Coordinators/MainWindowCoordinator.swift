@@ -27,7 +27,6 @@ class MainWindowCoordinator: ObservableObject{
 	// in case of failed initialization
 	@Published var mLoaderInitializationFailed : Bool = false
 	
-	
 	// Use mLoaderAppContextPtr to interact with the library
 	private var mLoaderAppContextPtr: OpaquePointer?
 	
@@ -40,7 +39,6 @@ class MainWindowCoordinator: ObservableObject{
 	[
 	]
 	
-	@Published var selectedVrpApp: SVrpApp.ID? = nil
 	@Published var selectedAdbDevice : SAdbDevice? = nil
 	@Published var selectedAdbDeviceDetails: [SAdbDeviceDetails] = [
 		SAdbDeviceDetails(PropertyName: "ro.product.manufacturer"),
@@ -165,7 +163,6 @@ class MainWindowCoordinator: ObservableObject{
 				let propNameCStr = selectedAdbDeviceDetails[index].PropertyName.cString(using: .utf8)
 				let propValueCStr = MLoaderGetDeviceProperty(mLoaderAppContextPtr, selectedAdbDevice?.cAdbDevicePtr, propNameCStr)
 				selectedAdbDeviceDetails[index].PropertyValue = Utility_StringFromCString(propValueCStr)
-				print(selectedAdbDeviceDetails[index].PropertyValue)
 				free(propValueCStr)
 			}
 		}

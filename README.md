@@ -29,7 +29,9 @@ Standalone Mode | VRP Mode
 ![](https://raw.githubusercontent.com/mlogic1/mloader/refs/heads/main/screenshots/screenshot_linux_standalone.png)  |  ![](https://raw.githubusercontent.com/mlogic1/mloader/refs/heads/main/screenshots/screenshot_linux_vrp.png)
 
 ### MacOS
-![](https://raw.githubusercontent.com/mlogic1/mloader/refs/heads/main/screenshots/screenshot_mac_vrp.png)
+Grid | List
+:-:|:-:
+![](https://raw.githubusercontent.com/mlogic1/mloader/refs/heads/main/screenshots/screenshot_mac_vrp_grid.png) | ![](https://raw.githubusercontent.com/mlogic1/mloader/refs/heads/main/screenshots/screenshot_mac_vrp_list.png)
 
 ## Building
 There are 3 tools/projects in this repository:
