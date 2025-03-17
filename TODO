@@ -31,4 +31,3 @@ gtk/linux specific:
 
 macOS specific:
     - not all AppIcons have a proper size
-    - Tile view

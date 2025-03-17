@@ -24,19 +24,26 @@ namespace mloader
 		m_logger(logger),
 		m_running(true)
 	{
-		std::thread backgroundDownloadThread(&QueueManager::BackgroundDownloadService, this);
-		backgroundDownloadThread.detach();
-
-		std::thread backgroundInstallThread(&QueueManager::BackgroundInstallService, this);
-		backgroundInstallThread.detach();
+		m_backgroundDownloadThread = std::thread(&QueueManager::BackgroundDownloadService, this);
+		m_backgroundInstallThread = std::thread(&QueueManager::BackgroundInstallService, this);
 	}
 
 	QueueManager::~QueueManager()
 	{
-		// switch to joinable threads
 		ClearDownloadQueue();
 		ClearInstallQueue();
 		m_running = false;
+
+		if (m_backgroundDownloadThread.joinable())
+		{
+			m_backgroundDownloadThread.join();
+		}
+
+		if (m_backgroundInstallThread.joinable())
+		{
+			m_backgroundInstallThread.join();
+		}
+
 		m_selectedDevice = nullptr;
 	}
 
@@ -118,8 +125,6 @@ namespace mloader
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-			// maybe it would be good to check m_running again here, on rare occasions it crashes when trying to call lock when the application is exiting (or alternatively try sleep at the end of the loop)
-
 			m_downloadQueueMutex.lock();
 			if (!m_downloadQueue.empty())
 			{
@@ -143,8 +148,6 @@ namespace mloader
 		while(m_running)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-			// maybe it would be good to check m_running again here, on rare occasions it crashes when trying to call lock when the application is exiting (or alternatively try sleep at the end of the loop)
 
 			if (m_selectedDevice == nullptr)
 			{

@@ -58,6 +58,9 @@ namespace mloader
 			Logger&		m_logger;
 
 			AdbDevice* m_selectedDevice = nullptr;
+		
+			std::thread m_backgroundDownloadThread;
+			std::thread m_backgroundInstallThread;
 
 			static constexpr const char* LOG_NAME{"QueueManager"};
 	};

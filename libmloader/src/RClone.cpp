@@ -30,6 +30,7 @@ namespace mloader
 		  m_logger(logger)
 	{
 		CheckAndDownloadTool();
+		// TODO: if this fails, throw an exception
 	}
 
 	RClone::~RClone()
