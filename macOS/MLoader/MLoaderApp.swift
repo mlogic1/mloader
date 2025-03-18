@@ -19,9 +19,13 @@ import SwiftUI
 struct MLoaderApp: App {
 	@NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 	
-    var body: some Scene {
+	@StateObject var commandsMenuState = CommandsMenuState()
+	@StateObject var coordinator: MainWindowCoordinator = MainWindowCoordinator()
+	
+	var body: some Scene {
 		WindowGroup{
-			MainWindow()
+			MainWindow(commandsMenuState: commandsMenuState,
+					   coordinator: coordinator)
 				.onAppear{
 					NSWindow.allowsAutomaticWindowTabbing = false
 					if let window = NSApplication.shared.windows.first {
@@ -31,8 +35,10 @@ struct MLoaderApp: App {
 		}
 		.commands {
 			CommandGroup(replacing: .newItem, addition: {
-				Button("Preferences") {}
-				Button("Delete all downloads") {}
+				if coordinator.mLoaderInitialized{
+					Button("Preferences") {}
+					Button("Delete all downloads") { commandsMenuState.showDeleteAllDownloadsPrompt = true }
+				}
 			})
 			CommandGroup(replacing: .undoRedo) { }
 			CommandGroup(replacing: .pasteboard) { }

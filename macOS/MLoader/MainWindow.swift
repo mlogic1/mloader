@@ -29,7 +29,9 @@ struct MainWindow: View {
 	@State var currentPreviewImage: NSImage? = NSImage(named: "ui_thumb_preview") ?? nil
 	@State var currentNote: String = ""
 	
-	@StateObject var coordinator: MainWindowCoordinator = MainWindowCoordinator()
+	@ObservedObject var commandsMenuState: CommandsMenuState
+	
+	@ObservedObject var coordinator: MainWindowCoordinator
 	
 	private var filteredApps: [SVrpApp]
 	{
@@ -144,6 +146,11 @@ struct MainWindow: View {
 				})
 			.padding()
 			.frame(maxWidth: .infinity)
+			.alert(isPresented: $commandsMenuState.showDeleteAllDownloadsPrompt){
+				Alert(title: Text("Clear downloads directory?"), message: Text("This will delete all downloaded applications from this computer. It will not uninstall any applications from connected devices.\nWould you like to continue?"), primaryButton: .default(Text("Yes"), action: {
+						coordinator.MLoaderClearDownloadsDirectory()
+				}), secondaryButton: .cancel(Text("No")))
+			}
 		}
 		else{
 			ZStack(alignment: .bottomTrailing){
@@ -205,7 +212,11 @@ struct MainWindow: View {
 }
 
 struct MainWindow_Previews: PreviewProvider {
+	@StateObject static var commandsMenuState = CommandsMenuState()
+	@StateObject static var coordinator: MainWindowCoordinator = MainWindowCoordinator()
+	
     static var previews: some View {
-        MainWindow()
+        MainWindow(commandsMenuState: commandsMenuState,
+				   coordinator: coordinator)
     }
 }

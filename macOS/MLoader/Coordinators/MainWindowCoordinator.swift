@@ -190,6 +190,15 @@ class MainWindowCoordinator: ObservableObject{
 		}
 	}
 	
+	func MLoaderClearDownloadsDirectory()
+	{
+		for vrpApp in vrpApps{
+			if vrpApp.Status == Downloaded{
+				MLoaderDeleteApp(mLoaderAppContextPtr, vrpApp.cAppPtr)
+			}
+		}
+	}
+	
 	func MLoaderInitialize()
 	{
 		InitializeMloaderAsync(onSuccess: self.OnMLoaderInitSucessful, onFailure: self.OnMloaderInitFailed)
