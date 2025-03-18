@@ -138,7 +138,7 @@ namespace mloader
 		return "";
 	}
 
-	bool ADB::CheckAndDownloadTool()
+	void ADB::CheckAndDownloadTool()
 	{
 		const fs::path adbToolDir = m_cacheDir / "platform-tools/";
 		m_adbToolPath = adbToolDir/ "adb";
@@ -176,7 +176,7 @@ namespace mloader
 			{
 				m_logger.LogError(LOG_NAME, "Unzipping ADB failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				perror("popen");
-				return false;
+				throw std::runtime_error("Unable to unzip ADB in cache directory.");
 			}
 
 			char path[1035];
@@ -186,23 +186,17 @@ namespace mloader
 			}
 
 			int status = pclose(fp);
-			if (status == -1)
+			if (status != EXIT_SUCCESS)
 			{
 				m_logger.LogError(LOG_NAME, "Unzipping ADB failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				perror("pclose");
-				return false;
-			}
-			else
-			{
-				// printf("Command exited with status: %d\n", WEXITSTATUS(status));
+				throw std::runtime_error("Unable to unzip ADB in cache directory.");
 			}
 		}
 		else
 		{
 			m_logger.LogInfo(LOG_NAME, "Found an existing ADB tool at " + std::string(m_adbToolPath));
 		}
-
-		return true;
 	}
 
 	void ADB::StartServer()

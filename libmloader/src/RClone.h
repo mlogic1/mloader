@@ -35,7 +35,7 @@ namespace mloader
 			bool CopyFile(const std::string& baseUrl, const std::string& fileId, const fs::path& directory, std::function<void(uint8_t)> progressCallback = nullptr) const;
 		
 		private:
-			bool CheckAndDownloadTool();
+			void CheckAndDownloadTool();
 
 		private:
 			fs::path m_cacheDir;

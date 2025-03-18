@@ -41,7 +41,7 @@ namespace mloader
 			std::string GetDeviceProperty(const AdbDevice& device, const std::string propName) const;
 
 		private:
-			bool CheckAndDownloadTool();
+			void CheckAndDownloadTool();
 			void StartServer();
 			void ResetServer();
 			void KillServer();

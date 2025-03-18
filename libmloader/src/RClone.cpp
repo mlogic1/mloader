@@ -30,7 +30,6 @@ namespace mloader
 		  m_logger(logger)
 	{
 		CheckAndDownloadTool();
-		// TODO: if this fails, throw an exception
 	}
 
 	RClone::~RClone()
@@ -38,7 +37,7 @@ namespace mloader
 
 	}
 
-	bool RClone::CheckAndDownloadTool()
+	void RClone::CheckAndDownloadTool()
 	{
 	#ifdef _WIN32
 		// const std::string httpFile{"https://downloads.rclone.org/v1.69.0/rclone-v1.69.0-windows-amd64.zip"};
@@ -79,7 +78,7 @@ namespace mloader
 			{
 				m_logger.LogError(LOG_NAME, "Unzipping Rclone failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
 				perror("popen");
-				return false;
+				throw std::runtime_error("Unable to unzip RClone in cache directory.");
 			}
 
 			char path[1035];
@@ -89,23 +88,17 @@ namespace mloader
 			}
 
 			int status = pclose(fp);
-			if (status == -1)
+			if (status != EXIT_SUCCESS)
 			{
 				perror("pclose");
 				m_logger.LogError(LOG_NAME, "Unzipping Rclone failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
-				return false;
-			}
-			else
-			{
-				// printf("Command exited with status: %d\n", WEXITSTATUS(status));
+				throw std::runtime_error("Unable to unzip RClone in cache directory.");
 			}
 		}
 		else
 		{
 			m_logger.LogInfo(LOG_NAME, "Found an existing Rclone tool at " + std::string(m_rcloneToolPath));
 		}
-
-		return true;
 	}
 
 	bool RClone::SyncFile(const std::string& baseUrl, const std::string& fileName, const fs::path& directory) const

@@ -33,7 +33,7 @@ namespace mloader
 
 	Zip::~Zip() { }
 
-	bool Zip::CheckAndDownloadTool()
+	void Zip::CheckAndDownloadTool()
 	{
 		const fs::path zipToolDir = m_cacheDir / "7z/";
 		m_7zToolPath = zipToolDir / "7zz";
@@ -79,7 +79,7 @@ namespace mloader
 			{
 				perror("popen");
 				m_logger.LogInfo(LOG_NAME, "Unzipping 7z failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
-				return false;
+				throw std::runtime_error("Unable to extract 7z in the cache directory.");
 			}
 
 			char path[1035];
@@ -89,21 +89,17 @@ namespace mloader
 			}
 
 			int status = pclose(fp);
-			if (status == -1)
+			if (status != EXIT_SUCCESS)
 			{
 				perror("pclose");
 				m_logger.LogInfo(LOG_NAME, "Unzipping 7z failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
-				return false;
-			} else {
-				// printf("Command exited with status: %d\n", WEXITSTATUS(status));
+				throw std::runtime_error("Unable to extract 7z in the cache directory.");
 			}
 		}
 		else
 		{
 			m_logger.LogInfo(LOG_NAME, "Found an existing 7Zip tool at " + std::string(m_7zToolPath));
 		}
-
-		return true;
 	}
 
 	bool Zip::Unzip7z(const fs::path& archiveFile, const fs::path& destinationDir, const std::string& password) const
