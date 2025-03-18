@@ -75,6 +75,10 @@ struct VrpAppsGridView: View {
 	
 	private func DetermineButtonLabel(vrpApp: SVrpApp) -> String
 	{
+		if vrpApp.Status == Downloading{
+			return vrpApp.StatusStr
+		}
+		
 		let statusStringMap: [UInt32: String] = [
 			NoInfo.rawValue: 			"Download",
 			DownloadQueued.rawValue: 	"Download Queued",
