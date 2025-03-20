@@ -26,12 +26,9 @@ struct MLoaderApp: App {
 		WindowGroup{
 			MainWindow(commandsMenuState: commandsMenuState,
 					   coordinator: coordinator)
-				.onAppear{
-					NSWindow.allowsAutomaticWindowTabbing = false
-					if let window = NSApplication.shared.windows.first {
-						window.center()
-					}
-				}
+			.onAppear{
+				NSWindow.allowsAutomaticWindowTabbing = false
+			}
 		}
 		.commands {
 			CommandGroup(replacing: .newItem, addition: {
@@ -53,5 +50,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 	func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
 		// Return true so the app terminates after the last window is closed
 		return true
+	}
+	
+	func applicationDidFinishLaunching(_ notification: Notification) {
+		if let window = NSApplication.shared.windows.first {
+			window.center()
+			window.styleMask.remove(.resizable)
+			window.setContentSize(NSSize(width: 450, height: 200))
+		}
 	}
 }

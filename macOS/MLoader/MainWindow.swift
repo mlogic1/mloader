@@ -28,11 +28,12 @@ struct MainWindow: View {
 	@State var selectedVrpApp: SVrpApp.ID? = nil
 	@State var currentPreviewImage: NSImage? = NSImage(named: "ui_thumb_preview") ?? nil
 	@State var currentNote: String = ""
-	
+
 	@ObservedObject var commandsMenuState: CommandsMenuState
-	
 	@ObservedObject var coordinator: MainWindowCoordinator
-	
+
+	var mainWindow: NSWindow?
+
 	private var filteredApps: [SVrpApp]
 	{
 		if searchFilter.isEmpty{
@@ -41,7 +42,7 @@ struct MainWindow: View {
 			return coordinator.vrpApps.filter{$0.GameName.lowercased().contains(searchFilter.lowercased())}
 		}
 	}
-	
+
 	var selectDeviceLabel: String{
 		if coordinator.selectedAdbDevice == nil{
 			return "Select a device"
@@ -49,7 +50,7 @@ struct MainWindow: View {
 			return coordinator.selectedAdbDevice!.DeviceStatusStr
 		}
 	}
-	
+
 	private var disableInstallButton: Bool{
 		if selectedVrpApp == nil{
 			return true
@@ -61,7 +62,7 @@ struct MainWindow: View {
 			}
 		}
 	}
-	
+
 	private var disableDownloadButton: Bool{
 		if selectedVrpApp == nil{
 			return true
@@ -72,7 +73,7 @@ struct MainWindow: View {
 			return true
 		}
 	}
-	
+
     var body: some View {
 		if coordinator.mLoaderInitialized {
 			VStack {
@@ -140,6 +141,9 @@ struct MainWindow: View {
 
 				AppDeviceTabView(previewImage: $currentPreviewImage, noteStr: $currentNote, deviceDetails: $coordinator.selectedAdbDeviceDetails, showAppDetails: $showListView)
 			}
+			.onAppear{
+				SetWindowPropertiesOnSuccessInitialize()
+			}
 			.onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification), perform: { output in
 					// Code to run on will terminate
 					OnApplicationExit()
@@ -171,7 +175,15 @@ struct MainWindow: View {
 			}
 		}
 	}
-	
+
+	private func SetWindowPropertiesOnSuccessInitialize()
+	{
+		if let window = NSApplication.shared.windows.first {
+			  window.styleMask.insert(.resizable)
+			  window.setContentSize(NSSize(width: 950, height: 600))
+		  }
+	}
+
 	private func UpdatePreviewImage()
 	{
 		if let selectedVrpApp = coordinator.vrpApps.first(where: { $0.id == selectedVrpApp }) {
@@ -179,27 +191,27 @@ struct MainWindow: View {
 			currentNote = selectedVrpApp.Note
 		}
 	}
-	
+
 	private func ShowFAQDialog()
 	{
 		showFAQ = true
 	}
-	
+
 	func OnApplicationExit()
 	{
 		coordinator.MLoaderDestroy()
 	}
-	
+
 	func InstallApp()
 	{
 		coordinator.MloaderInstalldAppToSelectedDevice(appId: selectedVrpApp!)
 	}
-				
+
 	func DownloadApp()
 	{
 		coordinator.MLoaderDownloadApp(appId: selectedVrpApp!)
 	}
-	
+
 	private func OnViewTypeChanged(showListViewType: Bool)
 	{
 		showListView = showListViewType
@@ -214,7 +226,7 @@ struct MainWindow: View {
 struct MainWindow_Previews: PreviewProvider {
 	@StateObject static var commandsMenuState = CommandsMenuState()
 	@StateObject static var coordinator: MainWindowCoordinator = MainWindowCoordinator()
-	
+
     static var previews: some View {
         MainWindow(commandsMenuState: commandsMenuState,
 				   coordinator: coordinator)
