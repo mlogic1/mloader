@@ -20,6 +20,13 @@ struct VrpAppsGridView: View {
 	@Binding var selectedAdbDevice : SAdbDevice?
 	var onButtonDownloadAction: ((SVrpApp) -> Void )?
 	var onButtonInstallAction: ((SVrpApp) -> Void )?
+	var onButtonDeleteAction: ((SVrpApp) -> Void )?
+	
+	@State private var selectedVrpApp: SVrpApp? = nil
+	@State private var showModalPrompt: Bool = false	// used for Delete or Note dialogs
+	@State private var showModalPromptNote: Bool = false
+	@State private var showModalPromptTitle: String = ""
+	@State private var showModalPromptContent: String = ""
 	
     var body: some View {
 		GeometryReader{ geometry in
@@ -50,11 +57,6 @@ struct VrpAppsGridView: View {
 								.foregroundColor(.secondary)
 								.padding(0)
 								.frame(width: 262, alignment: .leading)
-							Text("Last updated: " + vrpApp.LastUpdated)
-								.font(.subheadline)
-								.foregroundColor(.secondary)
-								.padding(0)
-								.frame(width: 262, alignment: .trailing)
 							Button(action: {
 								OnActionButtonClicked(vrpApp: vrpApp)
 							}){
@@ -64,11 +66,67 @@ struct VrpAppsGridView: View {
 							}
 							.disabled(DetermineButtonDisabled(vrpApp: vrpApp))
 							.padding(5)
+							HStack{
+								if vrpApp.Status == Downloaded || vrpApp.Status == Installed{
+									Button(action: {
+										showModalPromptTitle = "Delete app"
+										showModalPromptContent = "Delete " + vrpApp.GameName + " from disk? Note: This does not uninstall the app from your headset."
+										selectedVrpApp = vrpApp
+										showModalPromptNote = false
+										showModalPrompt = true
+									}){
+										Text("Delete")
+											.font(.body)
+											.foregroundColor(.red)
+											.padding(0)
+											.frame(alignment: .leading)
+									}
+									.buttonStyle(PlainButtonStyle())
+								}
+							}
+							.frame(width: 262, height: 10, alignment: .leading)
+							HStack{
+								Text("Last updated: " + vrpApp.LastUpdated)
+									.font(.subheadline)
+									.foregroundColor(.secondary)
+									.padding(0)
+									.frame(width: 200, alignment: .leading)
+								if !vrpApp.Note.isEmpty{
+									Button(action: {
+										showModalPromptTitle = vrpApp.GameName
+										showModalPromptContent = vrpApp.Note
+										showModalPromptNote = true
+										showModalPrompt = true
+									}){
+										Text("View Note")
+											.font(.subheadline)
+											.frame(alignment: .trailing)
+									}
+									.buttonStyle(PlainButtonStyle())
+								}
+							}
+							.frame(width: 262, height: 10, alignment: .leading)
+							.padding(5)
+	
 						}
 						.frame(width: 262)
 						.background(RoundedRectangle(cornerRadius: 4).fill(Color(red: 0.17, green: 0.16, blue: 0.20)))
 					}
 				}
+			}
+			.alert(showModalPromptTitle, isPresented: $showModalPrompt){
+				if showModalPromptNote {
+					Button("OK", role: .cancel) { }
+				}else{
+					Button("No", role: .cancel) { }
+					Button("Yes", role: .cancel) {
+						if let vrpApp = selectedVrpApp {
+							onButtonDeleteAction?(vrpApp)
+						}
+					}
+				}
+			} message: {
+				Text(showModalPromptContent)
 			}
 		}
     }
@@ -129,7 +187,7 @@ struct VrpAppsGridView: View {
 
 struct VrpAppsGridView_Previews: PreviewProvider {
 	@State static var vrpApps: [SVrpApp] = [
-		SVrpApp(GameName: "Sample App With Loooonnoooooooooooooooooonnnnnnnnnnng Name. A very long name. So long it even needs 4 rows", ReleaseName: "Sample App Release Name", PackageName: "package.name", VersionCode: 123456, LastUpdated: "UTC 2024-12-31", SizeMB: 54551, Downloads: 0.5, Rating: 0.6, RatingCount: 137, Status: NoInfo, AppStatusParam: -1, StatusStr: "", Note: "This is a note", cAppPtr: nil, previewImage: NSImage(named: "ui_thumb_preview"))
+		SVrpApp(GameName: "Sample App With Loooonnoooooooooooooooooonnnnnnnnnnng Name. A very long name. So long it even needs 4 rows", ReleaseName: "Sample App Release Name", PackageName: "package.name", VersionCode: 123456, LastUpdated: "UTC 2024-12-31", SizeMB: 54551, Downloads: 0.5, Rating: 0.6, RatingCount: 137, Status: Downloaded, AppStatusParam: -1, StatusStr: "", Note: "This is a note", cAppPtr: nil, previewImage: NSImage(named: "ui_thumb_preview"))
 	]
 	
 	@State static var selectedAdbDevice : SAdbDevice? = nil

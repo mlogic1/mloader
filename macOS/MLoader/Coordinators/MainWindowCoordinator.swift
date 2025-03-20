@@ -190,6 +190,13 @@ class MainWindowCoordinator: ObservableObject{
 		}
 	}
 	
+	func MLoaderDeleteVrpApp(appId: SVrpApp.ID)
+	{
+		if let app = vrpApps.first(where: { $0.id == appId }){
+			MLoaderDeleteApp(mLoaderAppContextPtr, app.cAppPtr)
+		}
+	}
+	
 	func MLoaderClearDownloadsDirectory()
 	{
 		for vrpApp in vrpApps{

@@ -135,6 +135,9 @@ struct MainWindow: View {
 						},
 						onButtonInstallAction: { vrpApp in
 							coordinator.MloaderInstalldAppToSelectedDevice(appId: vrpApp.id)
+						},
+						onButtonDeleteAction: { vrpApp in
+							coordinator.MLoaderDeleteVrpApp(appId: vrpApp.id)
 						})
 						.frame(minWidth: 750, minHeight: 350)
 				}
