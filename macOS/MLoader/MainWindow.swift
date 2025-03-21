@@ -63,12 +63,23 @@ struct MainWindow: View {
 		}
 	}
 
-	private var disableDownloadButton: Bool{
+	private var disableDownloadButton: Bool {
 		if selectedVrpApp == nil{
 			return true
 		}else{
 			if let selectedVrpApp = coordinator.vrpApps.first(where: { $0.id == selectedVrpApp }) {
 				return  !(selectedVrpApp.Status == NoInfo)
+			}
+			return true
+		}
+	}
+	
+	private var disableDeleteButton: Bool {
+		if selectedVrpApp == nil{
+			return true
+		}else{
+			if let selectedVrpApp = coordinator.vrpApps.first(where: { $0.id == selectedVrpApp }) {
+				return  !(selectedVrpApp.Status == Downloaded || selectedVrpApp.Status == Installed)
 			}
 			return true
 		}
@@ -92,7 +103,7 @@ struct MainWindow: View {
 					.sheet(isPresented: $showFAQ){
 						FAQDialogView()
 					}
-					Spacer(minLength: 100.0)
+					Spacer(minLength: 30.0)
 					TextField("Search", text: $searchFilter)
 						.disableAutocorrection(true)
 						.border(.primary)
@@ -106,6 +117,13 @@ struct MainWindow: View {
 							Text("Download")
 						}
 						.disabled(disableDownloadButton)
+						Button(action: {
+							DeleteApp()
+						}){
+							Text("Delete")
+								.foregroundColor(.red)
+						}
+						.disabled(disableDeleteButton)
 					}
 				}
 				HStack(){
@@ -200,19 +218,30 @@ struct MainWindow: View {
 		showFAQ = true
 	}
 
-	func OnApplicationExit()
+	private func OnApplicationExit()
 	{
 		coordinator.MLoaderDestroy()
 	}
 
-	func InstallApp()
+	private func InstallApp()
 	{
-		coordinator.MloaderInstalldAppToSelectedDevice(appId: selectedVrpApp!)
+		if let vrpApp = selectedVrpApp{
+			coordinator.MloaderInstalldAppToSelectedDevice(appId: vrpApp)
+		}
+	}
+	
+	private func DeleteApp()
+	{
+		if let vrpApp = selectedVrpApp{
+			coordinator.MLoaderDeleteVrpApp(appId: vrpApp)
+		}
 	}
 
-	func DownloadApp()
+	private func DownloadApp()
 	{
-		coordinator.MLoaderDownloadApp(appId: selectedVrpApp!)
+		if let vrpApp = selectedVrpApp{
+			coordinator.MLoaderDownloadApp(appId: vrpApp)
+		}
 	}
 
 	private func OnViewTypeChanged(showListViewType: Bool)
