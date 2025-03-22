@@ -52,6 +52,7 @@ namespace mloader
 
 		private:
 			bool CheckVRPPublicCredentials();
+			bool LoadVRPPublicCredentials();
 			bool DownloadMetadata();
 
 		private:
@@ -63,8 +64,8 @@ namespace mloader
 			std::map<GameInfo, AppStatus> m_gameList;
 			std::function<void(const GameInfo&, const AppStatus, const int)> m_gameStatusChangedCallback = nullptr;
 
-			std::string m_baseUri = "https://go.vrpyourself.online/";
-			std::string m_password = "gL59VfgPxoHR";
+			std::string m_baseUri = "";
+			std::string m_password = "";
 
 			Logger& m_logger;
 			static constexpr const char* LOG_NAME = "VRPManager";

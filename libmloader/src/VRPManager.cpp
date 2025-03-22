@@ -18,6 +18,7 @@
 #include "7z.h"
 #include "Logger.h"
 #include "md5.h"
+#include <nlohmann/json.hpp>
 #include <filesystem>
 #include "curl_global.h"
 #include <curl/curl.h>
@@ -43,6 +44,11 @@ namespace mloader
 		{
 			error = "Unable to download vrp-public.json from VRP";
 			throw std::runtime_error(error);
+		}
+
+		if (!LoadVRPPublicCredentials())
+		{
+			throw std::runtime_error("vrp-public file is not found. No internet connection or the server is not available.");
 		}
 	}
 
@@ -371,6 +377,33 @@ namespace mloader
 		{
 			// TODO: check how old the file is.
 			// if older than 24 hours download it again
+		}
+
+		return true;
+	}
+
+	bool VRPManager::LoadVRPPublicCredentials()
+	{
+		const fs::path vrpPublicFile = m_cacheDir / "vrp-public.json";
+		if (!fs::exists(vrpPublicFile))
+		{
+			return false;
+		}
+
+		try
+		{
+			std::ifstream f(vrpPublicFile);
+			nlohmann::json vrpJson = nlohmann::json::parse(f);
+			m_baseUri = vrpJson["baseUri"];
+			m_password = vrpJson["password"];
+
+			// Not sure why, but the public password is not correct. Currently manually overriding this.
+			m_password = "gL59VfgPxoHR";
+		}
+		catch(const std::exception& e)
+		{
+			m_logger.LogError(LOG_NAME, e.what());
+			return false;
 		}
 
 		return true;
