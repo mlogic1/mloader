@@ -128,7 +128,7 @@ namespace mloader
 		while (fgets(path, sizeof(path), fp) != NULL) { }
 
 		int status = pclose(fp);
-		if (status == -1)
+		if (status != EXIT_SUCCESS)
 		{
 			perror("pclose");
 			m_logger.LogError(LOG_NAME, "Unzipping archive failed. Error no: " + std::to_string(errno) + ". " + strerror(errno));
