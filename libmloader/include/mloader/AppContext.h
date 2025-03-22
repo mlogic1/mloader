@@ -25,6 +25,7 @@ typedef struct AppContext AppContext;
 typedef void (* CreateLoaderContextStatusCallback)(const char*);
 typedef void (* CreateLoaderContextAsyncCompletedCallback)(AppContext*);
 typedef void (* RefreshMetadataAsyncCompletedCallback)(AppContext*);
+typedef void (* RefreshMetadataAsyncFailedCallback)(AppContext*);
 typedef void (* ADBDeviceListChangedCallback)(AppContext*, void*);
 typedef void (* AppStatusChangedCallback)(AppContext*, VrpApp*, void*);
 
@@ -36,8 +37,8 @@ extern "C"
 	void CreateLoaderContextAsync(CreateLoaderContextAsyncCompletedCallback completedCallback, CreateLoaderContextStatusCallback callback, const char* customCacheDir, const char* customDownloadDir);
 	void DestroyLoaderContext(AppContext* context);
 
-	void RefreshMetadata(AppContext* context);
-	void RefreshMetadataAsync(RefreshMetadataAsyncCompletedCallback completedCallback, AppContext* context);
+	bool RefreshMetadata(AppContext* context);
+	void RefreshMetadataAsync(RefreshMetadataAsyncCompletedCallback completedCallback, RefreshMetadataAsyncFailedCallback failedCallback, AppContext* context);
 	VrpApp** GetAppList(AppContext* context, int* num);
 	int DownloadApp(AppContext* context, VrpApp* app);
 	int MLoaderInstallApp(AppContext* context, VrpApp* app, AdbDevice* device);
