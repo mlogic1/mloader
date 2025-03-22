@@ -132,7 +132,7 @@ struct MainWindow: View {
 							OnViewTypeChanged(showListViewType: true)
 						}
 						Button("Grid View"){
-							OnViewTypeChanged(showListViewType:false)
+							OnViewTypeChanged(showListViewType: false)
 						}
 					} label: {
 						Label(viewTypeText, systemImage: "ellipsis.circle")
