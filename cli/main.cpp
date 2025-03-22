@@ -100,7 +100,7 @@ void PagedPrintMenu(Menu* menu)
 void PrintMenu(Menu* menu)
 {
 	const auto& options = menu->GetOptions();
-	
+
 	for (int i = 0; i < options.size(); ++i)
 	{
 		if (i == selectedIndex)
@@ -127,27 +127,34 @@ std::unordered_map<std::string, Menu*> SetupMenus(AppContext* context)
 		{ "MainMenu", new MainMenu(context) },
 		{ "GameListMenu", new GameListMenu(context) }
 	};
-	
+
 	return result;
 }
 
 int main(int argc, char* argv[])
 {
 	set_terminal_mode();
-	
+
 	AppContext* context = CreateLoaderContext(InitializationCallbackMessage, "", "");
+
+	if (context == nullptr)
+	{
+		std::cout << MLoaderGetErrorMessage() << std::endl;
+		return EXIT_FAILURE;
+	}
+
 	allMenus = SetupMenus(context);
 	ChangeMenu("MainMenu");
 
 	ClearScreen();
 	PrintMenu(currentMenu);
-	
+
 	int c;
 	while(c != 'q')
 	{
 		c = getchar();
 		const size_t numOptions = currentMenu->GetOptions().size();
-		
+
 		if (c == 27)
 		{
 			// escape sequences
@@ -196,7 +203,7 @@ int main(int argc, char* argv[])
 			{
 				std::cout << std::get<std::string>(executeActionResult.Parameter) << std::endl;
 			}
-			
+
 			if (executeActionResult.Result == ActionResult::ChangeMenu)
 			{
 				ChangeMenu(std::get<std::string>(executeActionResult.Parameter));
@@ -214,7 +221,7 @@ int main(int argc, char* argv[])
 		else
 		{
 		}
-		
+
 		ClearScreen();
 
 		if (dynamic_cast<GameListMenu*>(currentMenu))

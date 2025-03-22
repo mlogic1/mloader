@@ -291,7 +291,10 @@ AppContext* CreateLoaderContext(CreateLoaderContextStatusCallback callback, cons
 	try
 	{
 		GenericCallback(callback, "Loading metadata");
-		RefreshMetadata(appContext);
+		if (!RefreshMetadata(appContext))
+		{
+			throw std::runtime_error("Unable to load metadata");
+		}
 	}catch(std::runtime_error& error)
 	{
 		err_msg = error.what();
@@ -368,22 +371,33 @@ void DestroyLoaderContext(AppContext* context)
 	mloader::CleanupGlobalCurl();
 }
 
-void RefreshMetadata(AppContext* context)
+bool RefreshMetadata(AppContext* context)
 {
 	context->QueueManager->ClearDownloadQueue();
 	context->QueueManager->ClearInstallQueue();
 	if (!context->VrpManager->RefreshMetadata())
 	{
 		err_msg = "Unable to download or load metadata";
+		return false;
 	}
+
+	return true;
 }
 
-void RefreshMetadataAsync(RefreshMetadataAsyncCompletedCallback completedCallback, AppContext* context)
+void RefreshMetadataAsync(RefreshMetadataAsyncCompletedCallback completedCallback, RefreshMetadataAsyncFailedCallback failedCallback, AppContext* context)
 {
 	std::thread([=]() {
-		std::future<void> ret = std::async(std::launch::async, RefreshMetadata, context);
+		std::future<bool> ret = std::async(std::launch::async, RefreshMetadata, context);
 
-		completedCallback(context);
+		if (ret.get())
+		{
+			completedCallback(context);
+		}
+		else
+		{
+			failedCallback(context);
+		}
+
 	}).detach();
 }
 
