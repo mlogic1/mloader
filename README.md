@@ -44,11 +44,11 @@ Most of the tools use CMake as their build system.
 
 Before building, make sure you have the the following dependencies installed (depending on which OS you want):
 
-| Dependency | Linux     | MacOS        |
-| ---------- | --------- | ----------   |
-| `cmake`    | Required  | Required     |
-| `curl`     | Required  | Required     |
-| `gtk-3.0`  | Required  | Not required |
+| Dependency              | Linux     | MacOS        |
+| ----------------------- | --------- | ----------   |
+| `cmake`                 | Required  | Required     |
+| `libcurl4-openssl-dev`  | Required  | Required     |
+| `gtk-3.0`               | Required  | Not required |
 
 ### Linux
 1. Check out the repository  

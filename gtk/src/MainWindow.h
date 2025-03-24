@@ -16,7 +16,7 @@
 #pragma once
 
 #include "model/DeviceDetails.h"
-#include <mloader/App.h>
+#include <mloader/VrpApp.h>
 #include <mloader/AdbDevice.h>
 #include <gtk/gtk.h>
 #include <string>
@@ -38,7 +38,7 @@ class MainWindow
 		void OnAppSelectionChanged();
 		void OnDownloadButtonClicked();
 		void OnInstallButtonClicked();
-		void OnAppStatusChanged(App* app);
+		void OnAppStatusChanged(VrpApp* app);
 		void OnMenuBarClearDownloadsClicked();
 
 	private:
@@ -55,9 +55,9 @@ class MainWindow
 
 	private:
 		AppContext* m_appContext;
-		App** m_appList = nullptr;
+		VrpApp** m_appList = nullptr;
 		int m_numApps = 0;
-		App* m_selectedApp = nullptr;
+		VrpApp* m_selectedApp = nullptr;
 		AdbDevice** m_adbDeviceList = nullptr;
 		AdbDevice* m_selectedAdbDevice = nullptr;
 		int m_numAdbDevices = 0;

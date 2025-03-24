@@ -19,7 +19,7 @@
 #include <functional>
 #include <map>
 #include <mloader/AppContext.h>
-#include <mloader/App.h>
+#include <mloader/VrpApp.h>
 
 static void gquit(GtkWidget* widget, gpointer data)
 {
@@ -65,7 +65,7 @@ static void button_install_clicked(GtkWidget* widget, gpointer data)
 
 static gboolean app_changed_callback_event(gpointer data)
 {
-	std::pair<MainWindow*, App*>* params = static_cast<std::pair<MainWindow*, App*>*>(data);
+	std::pair<MainWindow*, VrpApp*>* params = static_cast<std::pair<MainWindow*, VrpApp*>*>(data);
 	params->first->OnAppStatusChanged(params->second);
 	delete params;
 	return false;
@@ -209,8 +209,8 @@ void MainWindow::InitializeLayout()
 void MainWindow::SetupCallbackEvents()
 {
 	// Important: App status changed can be called from a background thread. It's important to use g_idle_add to do any UI updates from the main thread
-	SetAppStatusChangedCallback(m_appContext, [](AppContext* context, App* app, void* usrdata){
-		std::pair<MainWindow*, App*>* params = new std::pair<MainWindow*, App*>(static_cast<MainWindow*>(usrdata), app);
+	SetAppStatusChangedCallback(m_appContext, [](AppContext* context, VrpApp* app, void* usrdata){
+		std::pair<MainWindow*, VrpApp*>* params = new std::pair<MainWindow*, VrpApp*>(static_cast<MainWindow*>(usrdata), app);
 		g_idle_add(app_changed_callback_event, params);
 	}, this);
 
@@ -469,7 +469,7 @@ void MainWindow::OnInstallButtonClicked()
 	MLoaderInstallApp(m_appContext, m_selectedApp, m_selectedAdbDevice);
 }
 
-void MainWindow::OnAppStatusChanged(App* app)
+void MainWindow::OnAppStatusChanged(VrpApp* app)
 {
 	GtkTreeIter iter;
 	gboolean iterValid;
