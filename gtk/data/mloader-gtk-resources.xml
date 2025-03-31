@@ -5,6 +5,7 @@
 		<file preprocess="xml-stripblanks">layouts/layout_main.glade</file>
 		<file preprocess="xml-stripblanks">layouts/layout_about.glade</file>
 		<file preprocess="xml-stripblanks">layouts/layout_standalone.glade</file>
+		<file preprocess="xml-stripblanks">layouts/grid_view_element.ui</file>
 		<file>ui/blank.png</file>
 		<file>ui/download16.png</file>
 		<file>ui/dragndrop.png</file>

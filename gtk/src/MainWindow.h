@@ -32,6 +32,8 @@ class MainWindow
 
 		// Events
 		void OnAppFilterChanged();
+		void OnViewTypeChanged();
+		void ResizeGridView(GtkAllocation* allocation);
 		gboolean OnFilterFunction(GtkTreeModel *model, GtkTreeIter *iter);
 		void OnAdbDeviceListChanged();
 		void OnAdbDeviceSelectionChanged();
@@ -70,7 +72,13 @@ class MainWindow
 		GtkEntry* m_mainDeviceListComboBoxEntry;
 		GtkEntry* m_entryFilter;
 		GtkTreeModelFilter* m_appTreeModelFilter;
+		GtkComboBox* m_mainViewTypeCombo;
 		GtkTreeView* m_mainAppTree;
+		GtkScrolledWindow* m_mainAppTreeScrolledWindow;
+		GtkScrolledWindow* m_mainAppTreeScrolledWindowGrid;
+		GtkFlowBox* m_mainAppGrid;
+		GtkWidget* m_gridViewBoxParent;
+		GtkStack* m_mainContentStack;
 		GtkButton* m_downloadBtn;
 		GtkButton* m_installBtn;
 		GtkImage* m_imageThumbPreview;
@@ -92,4 +100,5 @@ class MainWindow
 		};
 
 		static constexpr const char* LAYOUT_RESOURCE = "/mlres/layouts/layout_main.glade";
+		static constexpr const char* GRIDVIEW_ELEMENT_RESOURCE = "/mlres/layouts/grid_view_element.ui";
 };

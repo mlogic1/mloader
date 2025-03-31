@@ -33,6 +33,18 @@ static void applist_filter_changed(GtkWidget* widget, gpointer data)
 	mainWindow->OnAppFilterChanged();
 }
 
+static void view_type_changed(GtkWidget* widget, gpointer data)
+{
+	MainWindow* mainWindow = static_cast<MainWindow*>(data);
+	mainWindow->OnViewTypeChanged();
+}
+
+static void grid_view_on_size_allocate(GtkWidget* widget, GtkAllocation* allocation, gpointer data)
+{
+	MainWindow* mainWindow = static_cast<MainWindow*>(data);
+	mainWindow->ResizeGridView(allocation);
+}
+
 static gboolean applist_visibility_func(GtkTreeModel *model, GtkTreeIter *iter,	gpointer      data)
 {
 	MainWindow* mainWindow = static_cast<MainWindow*>(data);
@@ -121,6 +133,27 @@ void MainWindow::OnAppFilterChanged()
 	gtk_tree_model_filter_refilter(m_appTreeModelFilter);
 }
 
+void MainWindow::OnViewTypeChanged()
+{
+	constexpr const int LIST_VIEW = 0;
+	int active = gtk_combo_box_get_active(m_mainViewTypeCombo);
+
+	if (active == LIST_VIEW)
+	{
+		gtk_stack_set_visible_child(m_mainContentStack, GTK_WIDGET(m_mainAppTreeScrolledWindow));
+	}
+	else
+	{
+		gtk_stack_set_visible_child(m_mainContentStack, GTK_WIDGET(m_mainAppTreeScrolledWindowGrid));
+	}
+}
+
+void MainWindow::ResizeGridView(GtkAllocation* allocation)
+{
+	// TODO: it's not properly centered
+	gtk_widget_set_size_request(m_gridViewBoxParent, allocation->width, -1);
+}
+
 gboolean MainWindow::OnFilterFunction(GtkTreeModel *model, GtkTreeIter *iter)
 {
 	const gchar *searchText = gtk_entry_get_text(GTK_ENTRY(m_entryFilter));
@@ -160,17 +193,26 @@ void MainWindow::InitializeLayout()
 	m_builder						= gtk_builder_new_from_resource(LAYOUT_RESOURCE);
 	m_window 						= GTK_WIDGET(gtk_builder_get_object(m_builder, "main_window"));
 	m_mainAppTree 					= GTK_TREE_VIEW(gtk_builder_get_object(m_builder, "main_app_tree"));
-	m_mainAppTreeListStore 			= GTK_LIST_STORE(gtk_builder_get_object(m_builder, "liststoreAppList"));
+	m_mainAppTreeScrolledWindow		= GTK_SCROLLED_WINDOW(gtk_builder_get_object(m_builder, "main_controls_scrolled_window"));
+	m_mainAppTreeScrolledWindowGrid	= GTK_SCROLLED_WINDOW(gtk_builder_get_object(m_builder, "main_controls_scrolled_window_grid"));
+	m_mainAppGrid					= GTK_FLOW_BOX(gtk_builder_get_object(m_builder, "main_controls_grid_view"));
+	m_mainContentStack				= GTK_STACK(gtk_builder_get_object(m_builder, "main_views_stack"));
+	m_gridViewBoxParent				= GTK_WIDGET(gtk_builder_get_object(m_builder, "main_controls_grid_view_box_parent"));
+	m_mainAppTreeListStore			= GTK_LIST_STORE(gtk_builder_get_object(m_builder, "liststoreAppList"));
 	m_mainDeviceListStore			= GTK_LIST_STORE(gtk_builder_get_object(m_builder, "liststoreDeviceList"));
 	m_entryFilter					= GTK_ENTRY(gtk_builder_get_object(m_builder, "main_entry_search_filter"));
 	m_appTreeModelFilter			= GTK_TREE_MODEL_FILTER(gtk_builder_get_object(m_builder, "listStoreAppListModelFilter"));
 	m_mainDeviceListComboBox		= GTK_COMBO_BOX(gtk_builder_get_object(m_builder, "main_combo_device_list"));
 	m_mainDeviceListComboBoxEntry 	= GTK_ENTRY(gtk_builder_get_object(m_builder, "main_combo_device_list_entry"));
+	m_mainViewTypeCombo				= GTK_COMBO_BOX(gtk_builder_get_object(m_builder, "main_view_type_combo"));
 	m_downloadBtn					= GTK_BUTTON(gtk_builder_get_object(m_builder, "main_button_download"));
 	m_installBtn					= GTK_BUTTON(gtk_builder_get_object(m_builder, "main_button_install"));
 	m_imageThumbPreview				= GTK_IMAGE(gtk_builder_get_object(m_builder, "main_bottom_image_app_thumb"));
 	m_imageNotePlaceholder			= GTK_IMAGE(gtk_builder_get_object(m_builder, "main_bottom_image_note_placeholder"));
 	m_appNoteLabel					= GTK_LABEL(gtk_builder_get_object(m_builder, "main_bottom_label_note"));
+
+	// Set default view type to "List view"
+	gtk_combo_box_set_active(m_mainViewTypeCombo, 0);
 
 	// App details pane
 	GError* err = NULL;
@@ -193,6 +235,8 @@ void MainWindow::InitializeLayout()
 	g_signal_connect(m_mainAppTree, "cursor-changed", G_CALLBACK(applist_row_selected), this);
 	g_signal_connect(m_downloadBtn, "clicked", G_CALLBACK(button_download_clicked), this);
 	g_signal_connect(m_installBtn, "clicked", G_CALLBACK(button_install_clicked), this);
+	g_signal_connect(m_mainViewTypeCombo, "changed", G_CALLBACK(view_type_changed), this);
+	g_signal_connect(m_mainAppTreeScrolledWindowGrid, "size-allocate", G_CALLBACK(grid_view_on_size_allocate), this);
 
 	SetupMenuBarEvents();
 
@@ -270,6 +314,7 @@ void MainWindow::RefreshAppList()
 
 	for(int i = 0; i < m_numApps; ++i)
 	{
+		// List View
 		gtk_list_store_append(m_mainAppTreeListStore, &iter);
 
 		gtk_list_store_set(m_mainAppTreeListStore, &iter,
@@ -282,6 +327,45 @@ void MainWindow::RefreshAppList()
 			6, m_appList[i]->SizeMB,
 			7, m_appList[i]->Downloads,
 		-1);
+
+		// Grid View
+
+		// TODO: This is VERY slow on startup. Make this a batch job in the background
+		GtkBuilder* gtkBuilder = gtk_builder_new_from_resource(GRIDVIEW_ELEMENT_RESOURCE);
+		GtkWidget* element = GTK_WIDGET(gtk_builder_get_object(gtkBuilder, "grid_view_element_root"));
+		GtkImage* previewImage = GTK_IMAGE(gtk_builder_get_object(gtkBuilder, "grid_view_element_image"));
+		GtkLabel* appNameLabel = GTK_LABEL(gtk_builder_get_object(gtkBuilder, "grid_view_element_app_name"));
+
+		if (element == NULL)
+		{
+			g_print("Failed to instantiate grid_view_element_root");
+			g_object_unref(gtkBuilder);
+			break;
+		}
+
+		char* imagePath = GetAppThumbImage(m_appContext, m_appList[i]);
+
+		if (imagePath != NULL)
+		{
+			// m_imageThumbBuffer = gdk_pixbuf_new_from_file_at_scale(imagePath, 262, 150, true, &err);
+			// TODO: load the image at scale and set it in the ui element
+			// gdk_pixbuf_new_from_file_at_scale()
+			gtk_image_set_from_file(previewImage, imagePath);
+			free(imagePath);
+		}
+
+		g_object_ref(element); // Reference the widget
+		gtk_widget_unparent(element);
+
+		if (appNameLabel != NULL)
+		{
+			gtk_label_set_text(appNameLabel, m_appList[i]->GameName);
+		}
+
+		gtk_flow_box_insert(m_mainAppGrid, element, i);
+
+		g_object_unref(element); // Dereference the widget
+		g_object_unref(gtkBuilder);
 	}
 }
 
